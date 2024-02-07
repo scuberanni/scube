@@ -1,0 +1,38 @@
+{% extends 'blank_layout.html' %}
+{% load static %}
+
+
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        
+        
+
+
+        <div class="form-group col-4 col-md-2  ">
+
+
+            <form class="pt-1 px-4" action="" method="post" enctype="multipart/form-data" style="color:white;">
+                {% csrf_token %}
+                <div class="col-md-6">
+                    <label for="name" class="form-label"></label>
+                    {{ frm.as_table }}
+                </div>
+
+                
+                
+
+                <button type="submit" class="btn btn-success mt-4">Submit</button>
+            </form>
+        </div>
+
+        <div class="col-6 col-md-3 pt-4" style="color: aliceblue;">
+            
+
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

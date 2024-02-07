@@ -1,0 +1,35 @@
+{% extends 'blank_layout.html' %}
+{% load static %}
+
+{% block content %}
+
+
+<section class="container ">
+    <div class="row">
+        {% for product_obj in viewimage %}
+        
+        <div class="col-12 mb-2">
+            <div>
+                {% if product_obj.image %}
+                <img src="{{product_obj.image.url}}" class="card-img-top rounded-2 border border-primary border-3"
+                     alt="..." >
+                    
+                {% else %}
+                <img src="{% static 'images/gallery-img8.jpg' %}" 
+                    class="card-img-top rounded-2 border border-primary border-3" 
+                    alt="">
+                    
+                {% endif %}
+            </div>
+        </div>
+        
+
+
+
+
+        {% endfor %}
+    </div>
+
+</section>
+
+{% endblock %}

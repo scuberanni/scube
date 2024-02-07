@@ -1,0 +1,35 @@
+{% extends 'blank_layout.html' %}
+{% load static %}
+
+{% block content %}
+
+<section class="container">
+    <div class="row">
+
+        {% for product_obj in products %}
+        <div class="col-md-2 col-6 mt-4" >
+            <div class="card rounded-4 border border-primary border-3" style="width: 12rem; ">
+                {% if product_obj.image %}
+                <img src="{{product_obj.image.url}}" class="card-img-top" style="width: 11.7rem; height: 13rem; border-radius: 12px;"
+                    alt="...">
+                {% else %}
+                <img src="{% static 'images/gallery-img8.jpg' %}" class="card-img-top" style="width: 11.7rem; height: 13rem; border-radius:12px; " alt="">
+                {% endif %}
+                <div class="card-body">
+                    <h5 style="height: 50px;" class="card-title text-center">{{product_obj.name |upper}}</h5>
+                    
+
+                    <div class="mx-1 ">
+                        <a href="{% url 'details' product_obj.id %}" class="btn btn-primary " style="width: 9.5rem;">Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% endfor %}
+    </div>
+</section>
+
+
+
+{% endblock %}

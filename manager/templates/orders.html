@@ -1,0 +1,52 @@
+{% extends 'blank_layout.html' %}
+{% load static %}
+
+{% block content %}
+<section class="container ">
+    <h1 class="pt-2" style="color: beige;">Pending Orders </h1>
+</section>
+
+
+<section class="container ">
+    <div class="row">
+        <form role="form" action="" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <section class="container ">
+                <div class="row">
+                    {% for product_obj in order %}
+                    <div class=" col-md-3 col-12 mt-4">
+                        <div class="card rounded-4 border border-primary border-3" ">
+                            {% if product_obj.image %}
+                            <img src="{{product_obj.image.url}}" class="card-img-top rounded-4"
+                                style=" height: 16rem;" alt="...">
+                            {% else %}
+                            <img src="{% static 'images/page1-img1.jpg' %}" class="card-img-top rounded-4"
+                                style=" height: 16rem;" alt="">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title text-center">{{product_obj.name |upper}}</h5>
+                                <h6 class="card-title">{{product_obj.size |upper}}</h6>
+                                <h6 class="card-title">{{product_obj.color |upper}}</h6>
+                                <h6 class="card-title" style="height: 100PX;">{{product_obj.details |upper}}</h6>
+
+
+                                <td class="d-flex justify-content-center">
+                                    
+                                        <button type="button" class="cancelbtn bg-danger" style="width: 100%;"><a
+                                            style="text-decoration: none ;-webkit-text-fill-color: azure; "
+                                            href="{% url 'order_delcnf' product_obj.id %}">Delete</a></button>
+
+
+                                </td>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% endfor %}
+                </div>
+            </section>
+        </form>
+    </div>
+</section>
+{% endblock %}

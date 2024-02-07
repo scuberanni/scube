@@ -1,0 +1,23 @@
+{% extends 'blank_layout.html' %}
+{% load static %}
+
+{% block content %}
+
+<section class="container">
+    <div class="row">
+
+        <form action="" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <h1 style="color: blanchedalmond;">Delete Product</h1>
+            <p style="color: blanchedalmond;">Are you sure you want to delete your product?</p>
+
+            <input class="btn btn-danger" style="width: 80PX;" type="submit" value="YES" />
+            <a href="{% url 'orders_det' %}">
+                <div class="btn btn-primary">CANCEL</div>
+            </a>
+
+        </form>
+    </div>
+</section>
+
+{% endblock %}

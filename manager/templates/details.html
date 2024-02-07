@@ -1,0 +1,188 @@
+{% extends 'blank_layout.html' %}
+{% load static %}
+
+{% block content %}
+
+
+<section class="container ">
+    <div class="row">
+        {% for product_obj in details %}
+        <div class="col-12">
+            <div class="bg-primary rounded-4">
+                <h1 style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif; color: #ffffff;"
+                    class="text-center">PRODUCT DETAILS</h1>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 mb-2">
+            <div>
+                {% if product_obj.image %}
+                <a href="{% url 'viewimage' product_obj.id %}"><img src="{{product_obj.image.url}}" class="card-img-top rounded-5 border border-primary border-3"
+                    style="width:100%;height: 450px;" alt="..." ></a>
+                    
+                {% else %}
+                <img src="{% static 'images/gallery-img8.jpg' %}" 
+                    class="card-img-top rounded-5 border border-primary border-3" style="width:100% ;height: 450px;"
+                    alt="">
+                    
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-12 col-md-6 ">
+            <div class="rounded-5 bg-primary" style="width: 100%;">
+                <section class="container p-3">
+                    <div class="row">
+
+                        <div class="col-12">
+                            <div class="rounded-4" style="color: #000000; background-color: #fcaeae;">
+                                <h1 style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif; color: #000000;"
+                                    class="text-center">{{product_obj.name |upper}}</h1>
+                            </div>
+                        </div>
+
+                        <div class="col-5 pt-1">
+                            <div class=" rounded-4" style="color: #000000; background-color: #fcaeae;">
+                                <h6 class="px-4 pt-2 pb-2 pt-2 pb-2"
+                                    style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">
+                                    STATUS</h6>
+                            </div>
+                        </div>
+                        <div class="col-7 pt-1">
+                            <div class=" rounded-4" style="color: #000000; background-color: #fcaeae;">
+                                <h6 class="px-4 pt-2 pb-2 "
+                                    style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">
+                                    {{product_obj.status |upper}}</h6>
+                            </div>
+                        </div>
+
+                        <div class="col-5">
+                            <div class=" rounded-4" style="color: #000000; background-color: #fcaeae;">
+                                <h6 class="px-4 pt-2 pb-2"
+                                    style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">
+                                    CODE - </h6>
+                            </div>
+                        </div>
+                        <div class="col-7">
+                            <div class=" rounded-4" style="color: #000000; background-color: #fcaeae;">
+                                <h6 class="px-4 pt-2 pb-2"
+                                    style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">
+                                    {{product_obj.code |upper}}</h6>
+                            </div>
+                        </div>
+
+                        <div class="col-5">
+                            <div class=" rounded-4" style="color: #000000; background-color: #fcaeae;">
+                                <h6 class="px-4 pt-2 pb-2"
+                                    style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">
+                                    SIZE - </h6>
+                            </div>
+                        </div>
+                        <div class="col-7">
+                            <div class=" rounded-4" style="color: #000000; background-color: #fcaeae;">
+                                <h6 class="px-4 pt-2 pb-2"
+                                    style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">
+                                    {{product_obj.size |upper}}</h6>
+                            </div>
+                        </div>
+
+                        <div class="col-5">
+                            <div class=" rounded-4" style="color: #000000; background-color: #fcaeae;">
+                                <h6 class="px-4 pt-2 pb-2"
+                                    style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">
+                                    COLOR - </h6>
+                            </div>
+                        </div>
+                        <div class="col-7">
+                            <div class=" rounded-4" style="color: #000000; background-color: #fcaeae;">
+                                <h6 class="px-4 pt-2 pb-2"
+                                    style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">
+                                    {{product_obj.color |upper}}</h6>
+                            </div>
+                        </div>
+
+                        <div class="col-5">
+                            <div class=" rounded-4" style="color: #000000; background-color: #fcaeae;">
+                                <h6 class="px-4 pt-2 pb-2"
+                                    style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">
+                                    MATERIAL-</h6>
+                            </div>
+                        </div>
+                        <div class="col-7">
+                            <div class=" rounded-4" style="color: #000000; background-color: #fcaeae;">
+                                <h6 class="px-4 pt-2 pb-2"
+                                    style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">
+                                    {{product_obj.material |upper}}</h6>
+                            </div>
+                        </div>
+
+                        <div class="col-5">
+                            <div class=" rounded-4" style="color: #000000; background-color: #fcaeae;">
+                                <h6 class="px-4 pt-2 pb-2"
+                                    style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">
+                                    PRIZE - </h6>
+                            </div>
+                        </div>
+                        <div class="col-7">
+                            <div class=" rounded-4" style="color: #000000; background-color: #fcaeae;">
+                                <h6 class="px-4 pt-2 pb-2"
+                                    style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">
+                                    {{product_obj.prize |upper}}</h6>
+                            </div>
+                        </div>
+
+                        <div class="col-5">
+                            <div class=" rounded-4" style="color: #000000; background-color: #fcaeae;">
+                                <h6 class="px-4 pt-2 pb-2"
+                                    style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">
+                                    Pr_DATE - </h6>
+                            </div>
+                        </div>
+                        <div class="col-7">
+                            <div class=" rounded-4" style="color: #000000; background-color: #fcaeae;">
+                                <h6 class="px-4 pt-2 pb-2"
+                                    style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">
+                                    {{product_obj.pr_date |date:"d-m-Y"}}</h6>
+                            </div>
+                        </div>
+
+                        <div class="col-4 " style="padding-top: 10px;">
+                            <div class="bg-warning rounded-4 border  border-3">
+                                <a style="text-decoration: none ;-webkit-text-fill-color: azure; "
+                                    href="{% url 'home' %}">
+                                    <h4 class="pt-2 text-center">HOME</h4>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-4 " style="padding-top: 10px;">
+                            <div class="bg-success rounded-4 border  border-3">
+                                <a style="text-decoration: none ;-webkit-text-fill-color: azure; "
+                                    href="{% url 'edit' product_obj.id %}">
+                                    <h4 class="pt-2 text-center">EDIT</h4>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-4" style="padding-top: 10px;">
+                            <div class="bg-danger rounded-4 border  border-3">
+                                <a style="text-decoration: none ;-webkit-text-fill-color: azure; "
+                                    href="{% url 'del_cnf' product_obj.id %}">
+                                    <h4 class="pt-2  text-center">Delete</h4>
+                                </a>
+                            </div>
+                        </div>
+
+
+
+                    </div>
+                </section>
+
+            </div>
+        </div>
+
+
+
+
+        {% endfor %}
+    </div>
+
+</section>
+
+{% endblock %}

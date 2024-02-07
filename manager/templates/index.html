@@ -1,0 +1,175 @@
+{% extends 'blank_layout.html' %}
+{% load static %}
+
+{% block content %}
+
+<section class="container-fluid ">
+    <div class="row">
+        <div class="col-12 col-md-6 ">
+            <section class="container-fluid">
+                <div class="row">
+                    <row class="d-flex justify-content-center">
+                        <img src="{% static 'images/gallery-img8.jpg' %}" alt="" class="col-12 col-md-12 rounded-5"
+                            style="padding-top: 50px ; height: 340px; width: 370px;">
+                    </row>
+                </div>
+            </section>
+
+            <section>
+                <div class="d-grid gap-2 container">
+
+                    <BR></BR>
+                    <button class="btn btn-primary" type="button"><a class="text-white" style="text-decoration: none;"
+                            href="{% url 'all_products' %}">VIEW ALL PRODUCTS</a></button>
+                </div>
+            </section>
+
+        </div>
+        <div class=" col-12 col-md-6 ">
+            <section class="container-fluid">
+                <div class="row">
+                    <div class="col-6 col-md-3 pt-4 ">
+                        <div class="card rounded-4 border bg-dark border-primary border-3 px-0 ">
+                            <a href="{% url 'show_cupboard' %}"><img src="{% static 'images/WARDROBE2.jpg' %}"
+                                    class="card-img-top " style="border-radius: 13PX;height:150px;" alt=""></a>
+                            <H5 class="text-center pt-2" style="color: aliceblue;">CUPBOARD</H5>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 pt-4">
+                        <div class="card rounded-4 border bg-dark border-primary border-3 px-0 ">
+                            <a href="{% url 'show_table' %}"><img src="{% static 'images/TABLE.jpg' %}"
+                                    class="card-img-top " style="border-radius: 13PX;height:150px;" alt=""></a>
+                            <H5 class="text-center pt-2" style="color: aliceblue;">TABLE</H5>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 pt-4 ">
+                        <div class="card rounded-4 border bg-dark border-primary border-3 px-0 ">
+                            <a href="{% url 'show_tv_stand' %}"><img
+                                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDuAivnvVEkfOg0bWMaGkFv3GtfeNklGZd78_-V1R85ywHflbISxIXdp43SgHiV3Mzk5I&usqp=CAU"
+                                    class="card-img-top " style="border-radius: 13PX;height:150px;" alt=""></a>
+                            <H5 class="text-center pt-2" style="color: aliceblue;">TV STAND</H5>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 pt-4">
+                        <div class="card rounded-4 border bg-dark border-primary border-3 px-0 ">
+                            <a href="{% url 'show_sofa' %}"><img src="{% static 'images/page4-img6.jpg' %}"
+                                    class="card-img-top " style="border-radius: 13PX;height:150px;" alt=""></a>
+                            <H5 class="text-center pt-2" style="color: aliceblue;">SOFA</H5>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 pt-4">
+                        <div class="card rounded-4 border bg-dark border-primary border-3 px-0 ">
+                            <a href="{% url 'bedroom_set' %}"><img src="{% static 'images/BEDROOM SET.jpeg' %}"
+                                    class="card-img-top " style="border-radius: 13PX;height:150px;" alt=""></a>
+                            <H5 class="text-center pt-2" style="color: aliceblue;">BEDROOM SET</H5>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 pt-4">
+                        <div class="card rounded-4 border bg-dark border-primary border-3 px-0 ">
+                            <a href="{% url 'pooja_stand' %}"><img src="{% static 'images/POOJASTAND.jpeg' %}"
+                                    class="card-img-top " style="border-radius: 13PX;height:150px;" alt=""></a>
+                            <H5 class="text-center pt-2" style="color: aliceblue;">POOJA STAND</H5>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 pt-4">
+                        <div class="card rounded-4 border bg-dark border-primary border-3 px-0 ">
+                            <a href="{% url 'others' %}"><img
+                                    src="https://i5.walmartimages.com/asr/50f8a93c-978f-478a-8175-0b0878ad64b2.c1b2cb65b52150dd2406e1b04f298404.jpeg"
+                                    class="card-img-top " style="border-radius: 13PX;height:150px;" alt=""></a>
+                            <H5 class="text-center pt-2" style="color: aliceblue;">OTHERS</H5>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 pt-4">
+                        <div class="card rounded-4 border bg-dark border-primary border-3 px-0 ">
+                            <a href="{% url 'order' %}"><img src="{% static 'images/order.jpg' %}" class="card-img-top "
+                                    style="border-radius: 13PX;height:150px;" alt=""></a>
+                            <H5 class="text-center pt-2" style="color: aliceblue;">ORDERS</H5>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+    </div>
+</section>
+<br>
+
+<footer class="footer_container bg-warning">
+
+    <div class="row pt-2">
+        <div class="col-lg-6 col-12 footer_payment ">
+            <div>
+                <h3 class="footer_payment_heading text-white text-center">We Accept</h3>
+
+                <ul class="d-flex align-items-center justify-content-start flex-wrap footer_payment_list pt-1">
+                    <ul class="footer_payment_ulst_item">
+                        <div class=" rounded-4 bg-white border border-3 border-black">
+                            <img class="bg-white rounded-4" src="https://damroimages.blob.core.windows.net/damroimages/UPI-Payment.svg"
+                                alt="payment_image" >
+                            </div>
+                    </ul>
+                    <ul class="footer_payment_list_item">
+                        <div class=" rounded-4 border border-3 border-black" style="background-color:rgb(22, 102, 191)">
+                            <img class=" rounded-4" src="https://damroimages.blob.core.windows.net/damroimages/visa.svg"
+                                alt="payment_image">
+                            </div>
+                    </ul>
+                    <ul class="footer_payment_ulst_item">
+                        <div class=" rounded-4 bg-white border border-3 border-black">
+                            <img class="bg-white rounded-4" src="https://damroimages.blob.core.windows.net/damroimages/rupay.svg"
+                                alt="payment_image">
+                            </div>
+                    </ul>
+
+                    <ul class="footer_payment_ulst_item">
+                        <div class=" rounded-4  border border-3 border-black" style="background-color:rgb(1, 111, 208)">
+                            <img class=" rounded-4" src="https://damroimages.blob.core.windows.net/damroimages/amaricanExpress.svg"
+                                alt="payment_image">
+                            </div>
+                    </ul>
+
+                    <ul class="footer_payment_ulst_item pt-1">
+                        <div class=" rounded-4  border border-3 border-black" style="background-color: rgb(3, 16, 120);">
+                            <img class=" rounded-4" src="https://damroimages.blob.core.windows.net/damroimages/master.svg"
+                                alt="payment_image">
+                            </div>
+                    </ul>
+
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-6 col-12">
+            <div class="d-flex justify-content-center">
+                <h3 class="text-white">Follow Us</h3>
+            </div>
+
+            <div class="d-flex justify-content-center pt-1">
+                <ul class="footer_nav_social_icons"><a href="" target="_blank"
+                        rel="noreferrer"><img style="width:50px;"
+                            src="https://damroimages.blob.core.windows.net/damroimages/twitter_icon.svg"
+                            alt="twitter icon"></a></ul>
+                <ul class="footer_nav_social_icons"><a href=""
+                        target="_blank" rel="noreferrer"><img style="width:50px;"
+                            src="https://damroimages.blob.core.windows.net/damroimages/insta_icon.svg"
+                            alt="insta icon"></a></ul>
+                <ul class="footer_nav_social_icons"><a href=""
+                        target="_blank" rel="noreferrer"><img style="width:50px;"
+                            src="https://damroimages.blob.core.windows.net/damroimages/youtube_icon.svg"
+                            alt="youtube icon"></a></ul>
+                <ul class="footer_nav_social_icons"><a href="" target="_blank"
+                        rel="noreferrer"><img style="width:50px;"
+                            src="https://damroimages.blob.core.windows.net/damroimages/facebook_icon.svg"
+                            alt="facebook icon"></a></ul>
+            </div>
+        </div>
+
+
+    </div>
+
+    </div>
+
+
+    </div>
+</footer>
+
+{% endblock %}

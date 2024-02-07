@@ -1,0 +1,117 @@
+{% extends 'blank_layout.html' %}
+{% load static %}
+
+{% block content %}
+
+<section class="container ">
+    <div class="row">
+
+        {% for product_obj in products %}
+        <div class="col-md-2 col-6 mt-4">
+            <div class="card rounded-4 border border-primary border-3" style="width: 12rem;">
+                {% if product_obj.image %}
+                <img src="{{product_obj.image.url}}" class="card-img-top" style="width: 11.7rem; height: 13rem; border-radius: 12px;"
+                    alt="...">
+                {% else %}
+                <img src="{% static 'images/gallery-img8.jpg' %}" class="card-img-top" style="width: 11.7rem; height: 13rem; border-radius:12px; " alt="">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title text-center">{{product_obj.name |upper}}</h5>
+                    <h6 class="card-title">{{product_obj.size |upper}}</h6>
+                    <h6 class="card-title">{{product_obj.prize |upper}}</h6>
+                    <h6 class="card-title">{{product_obj.color |upper}}</h6>
+                    <h6 class="card-title">{{product_obj.material |upper}}</h6>
+
+
+                    <div class="mx-1 ">
+                        <a href="{% url 'details' product_obj.id %}" class="btn btn-primary "
+                            style="width: 9.5rem;">Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% endfor %}
+    </div>
+</section>
+
+<div class="container ">
+    <div class=" text-center mt-5 ">
+
+        <h1 style="color: beige;">NEW ORDER DETAILS</h1>
+    </div>
+    <div class="row ">
+        <div class="col-lg-7 mx-auto ">
+            <div class="card mt-2 mx-auto p-3 bg-light rounded-5">
+                <div class="card-body bg-light ">
+                    <div class="container ">
+                        <form role="form" action="{% url 'order_det' %}" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="controls">
+
+                                <div class="row ">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="form_lastname">Product Name</label>
+                                            <input type="text" name="name" class="form-control">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="form_lastname">Color</label>
+                                            <input type="text" name="color" class="form-control">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="form_lastname">Size</label>
+                                            <input type="text" name="size" class="form-control">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="form_lastname">Image</label>
+                                            <input type="file" name="image" class="form-control">
+                                        </div>
+                                    </div>
+
+
+
+                                </div>
+                                <div class="row">
+                                    <div class="m-auto">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label for="form_message">Details</label>
+                                                <textarea id="form_message" name="details" class="form-control"
+                                                    placeholder="Write details of product here." rows="4"></textarea>
+
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-6 col-md-6 pt-3">
+                                                <input type="submit" class="btn btn-success btn-send  pt-2  btn-block"
+                                                    style="width: 100%;" value="Add Order">
+                                            </div>
+                                            <div class="col-6 col-md-6 pt-3">
+                                                <a href="{% url 'orders_det' %}"><input 
+                                                        class="btn btn-info btn-send  pt-2 btn-block"
+                                                        style="width: 100%;" value="Show Orders"></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- /.8 -->
+        </div>
+        <!-- /.row-->
+    </div>
+</div>
+<BR></BR>
+
+
+{% endblock %}
