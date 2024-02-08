@@ -42,7 +42,7 @@ def list(request):
     return render(request,'list.html',{'prod':ls_data})
 
 def Pr_Approvel(request):
-    ls_data = Scube_ss.objects.filter(Q(prize__isnull=True) | Q(prize="0"), pr_date__gt="2024-01-01").order_by('pr_date')
+    ls_data = Scube_ss.objects.filter(Q(prize__isnull=True) | Q(prize="0"), pr_date__gt="2024-02-01").order_by('pr_date')
 
     print(ls_data)     
     return render(request,'Pr_Approvel.html',{'prod':ls_data})
