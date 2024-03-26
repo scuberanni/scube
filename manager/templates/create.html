@@ -10,20 +10,100 @@
         
 
 
-        <div class="form-group col-4 col-md-2  ">
+        <div class="form-group  ">
 
 
             <form class="pt-1 px-4" action="" method="post" enctype="multipart/form-data" style="color:white;">
                 {% csrf_token %}
-                <div class="col-md-6">
-                    <label for="name" class="form-label"></label>
-                    {{ frm.as_table }}
+                <div class="container">
+                    <div class="row pt-3">
+                        <h2 class="text-white pb-4">Adding Stock</h2>
+                        <div class="col-4 col-md-1 pt-2">
+                            {% csrf_token %}
+                            <label for="id_field1">CODE:</label>
+                        </div>
+                        <div class="col-8 col-md-11">
+                            {{ frm.code }}
+                        </div>
+                        <div class="col-4 col-md-1 pt-2">
+                            {% csrf_token %}
+                            <label for="id_field2">CATOGORY:</label>
+                        </div>
+                        <div class="col-8 col-md-11">
+                            {{ frm.Catogory}}
+                        </div>
+                        <div class="col-4 col-md-1 pt-2">
+                            {% csrf_token %}
+                            <label for="id_field3">NAME:</label>
+                        </div>
+                        <div class="col-8 col-md-11">
+                            {{ frm.name}}
+                        </div>
+                        <div class="col-4 col-md-1 pt-2">
+                            {% csrf_token %}
+                            <label for="id_field4">SIZE:</label>
+                        </div>
+                        <div class="col-8 col-md-11">
+                            {{ frm.size }}
+                        </div>
+                        <div class="col-4 col-md-1 pt-2">
+                            {% csrf_token %}
+                            <label for="id_field5">PRIZE:</label>
+                        </div>
+                        <div class="col-8 col-md-11">
+                            {{ frm.prize }}
+                        </div>
+                        <div class="col-4 col-md-1 pt-2">
+                            {% csrf_token %}
+                            <label for="id_field6">MATERIAL:</label>
+                        </div>
+                        <div class="col-8 col-md-11">
+                            {{ frm.material }}
+                        </div>
+                        <div class="col-4 col-md-1 pt-2">
+                            {% csrf_token %}
+                            <label for="id_field7">COLOR:</label>
+                        </div>
+                        <div class="col-8 col-md-11">
+                            {{ frm.color }}
+                        </div>
+                        <div class="col-4 col-md-1 pt-2">
+                            {% csrf_token %}
+                            <label for="id_field8">PROD_DATE:</label>
+                        </div>
+                        <div class="col-8 col-md-11">
+                            {{ frm.pr_date }}
+                        </div>
+                        <div class="col-4 col-md-1 pt-2">
+                            {% csrf_token %}
+                            <label for="id_field9">SALE DATE:</label>
+                        </div>
+                        <div class="col-8 col-md-11">
+                            {{ frm.sl_date }}
+                        </div>
+                        <div class="col-4 col-md-1 pt-2">
+                            {% csrf_token %}
+                            <label for="id_field10">STATUS:</label>
+                        </div>
+                        <div class="col-8 col-md-11">
+                            {{ frm.status }}
+                        </div>
+                        <div class="col-4 col-md-1 pt-2">
+                            {% csrf_token %}
+                            <label for="id_field11">IMAGE:</label>
+                        </div>
+                        <div class="col-8 col-md-11">
+                            {{ frm.image }}
+                        </div>
+                        
+                        
+                        <div class="col-6 col-md-6 pt-3">
+                            <input type="submit" class="btn btn-primary" value="Add Product">
+                        </div>
+
+                    </div>
+
                 </div>
-
-                
-                
-
-                <button type="submit" class="btn btn-success mt-4">Submit</button>
             </form>
         </div>
 
