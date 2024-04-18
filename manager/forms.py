@@ -6,7 +6,7 @@ from django import forms
 
 class PrForm(ModelForm):
       pr_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
-      sl_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+      sl_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), required=False) 
       class Meta:
             model=Scube_ss
             fields=['code','Catogory', 'name', 'size','prize', 'material', 'color','pr_date','sl_date','status','image']
