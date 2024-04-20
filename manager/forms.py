@@ -9,7 +9,7 @@ class PrForm(ModelForm):
       sl_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), required=False) 
       class Meta:
             model=Scube_ss
-            fields=['code','Catogory', 'name', 'size','prize', 'material', 'color','pr_date','sl_date','status','image']
+            fields=['code','Catogory', 'name', 'size','prize', 'material', 'color','pr_date','sl_date','status','image','new_pr']
             labels = {
             'code': 'Custom Label for Field 1',
             'Catogory': 'Custom Label for Field 2',
@@ -22,6 +22,7 @@ class PrForm(ModelForm):
             'sl_date': 'Custom Label for Field 9',
             'status': 'Custom Label for Field 10',
             'image': 'Custom Label for Field 11',
+            'new_pr': 'Custom Label for Field 12',
         }
 
 class OrderForm(ModelForm):

@@ -10,6 +10,10 @@ status_choice= [
     ('SALE', 'SALE'),
     ('ORDER','ORDER')
 ]
+new_choice= [ 
+    ('NEW', 'NEW'),
+]
+
 
 Catogory_choice= [ 
     ('CUPBOARD', 'CUPBOARD'),
@@ -37,6 +41,7 @@ class Scube_ss(models.Model):
     sl_date=models.DateField(null=True, blank=True)
     status= models.CharField(choices=status_choice , max_length=50 ,null=True )
     image=models.ImageField(upload_to='images/',blank=True)
+    new_pr= models.CharField(choices=new_choice , max_length=50 ,null=True,blank=True )
 
     def __str__(self):
         return self.name
