@@ -32,14 +32,15 @@ urlpatterns = [
     path('order_det/',views.order_det,name='order_det'),
     path('others/',views.others,name='others'),
   
-    path('show_cupboard2/',views.show_cupboard2,name='show_cupboard2'),
-    path('show_table2/',views.show_table2,name='show_table2'),
-    path('show_tv_stand2/',views.show_tv_stand2,name='show_tv_stand2'),
-    path('show_sofa2/',views.show_sofa2,name='show_sofa2'),
-    path('bedroom_set2/',views.bedroom_set2,name='bedroom_set2'),
-    path('pooja_stand2/',views.pooja_stand2,name='pooja_stand2'),
-    path('order2/',views.order2,name='order2'),
-    path('others2/',views.others2,name='others2'),
+    path('pr_img/show_cupboard/',views.show_cupboard2,name='show_cupboard2'),
+    path('pr_img/show_table/',views.show_table2,name='show_table2'),
+    path('pr_img/show_tv_stand/',views.show_tv_stand2,name='show_tv_stand2'),
+    path('pr_img/show_sofa/',views.show_sofa2,name='show_sofa2'),
+    path('pr_img/bedroom_set/',views.bedroom_set2,name='bedroom_set2'),
+    path('pr_img/pooja_stand/',views.pooja_stand2,name='pooja_stand2'),
+    path('pr_img/order/',views.order2,name='order2'),
+    path('pr_img/others/',views.others2,name='others2'),
+    path('all_img/',views.all_img,name='all_img'),
     
 
 
