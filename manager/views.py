@@ -31,6 +31,8 @@ def all_products(request):
 def home(request):
     return render(request,'index.html')
 
+def pr_img(request):
+    return render(request,'all.html')
 
 def list(request):
     ls_data=Scube_ss.objects.exclude(status="SALE" ).order_by('code')
@@ -197,3 +199,52 @@ def order_det(request):
         frm=OrderForm()
     return redirect('order')
 
+
+
+
+def show_cupboard2(request):
+    ls_data = Scube_ss.objects.filter(Catogory="CUPBOARD", new_pr="NEW").order_by('size')
+
+    print(ls_data)
+    return render(request,'all_products.html',{'products':ls_data})
+
+def show_table2(request):
+    ls_data=Scube_ss.objects.filter(Catogory="TABLE", new_pr="NEW").order_by('size')
+
+    print(ls_data)
+    return render(request,'all_products.html',{'products':ls_data})
+
+def show_tv_stand2(request):
+    ls_data=Scube_ss.objects.filter(Catogory="TV-STAND", new_pr="NEW").order_by('size')
+
+    print(ls_data)
+    return render(request,'all_products.html',{'products':ls_data})
+
+def show_sofa2(request):
+    ls_data=Scube_ss.objects.filter(Catogory="SOFA", new_pr="NEW").order_by('size')
+
+    print(ls_data)
+    return render(request,'all_products.html',{'products':ls_data})
+
+def bedroom_set2(request):
+    ls_data=Scube_ss.objects.filter(Catogory="BEDROOM-SET", new_pr="NEW").order_by('size')
+
+    print(ls_data)
+    return render(request,'all_products.html',{'products':ls_data})
+
+def pooja_stand2(request):
+    ls_data=Scube_ss.objects.filter(Catogory="POOJA-STAND", new_pr="NEW").order_by('size')
+
+    print(ls_data)
+    return render(request,'all_products.html',{'products':ls_data})
+
+def others2(request):
+    ls_data=Scube_ss.objects.filter(Catogory="OTHERS", new_pr="NEW").order_by('size')
+
+    print(ls_data)
+    return render(request,'all_products.html',{'products':ls_data})
+
+def order2(request):
+    ls_data=Scube_ss.objects.filter(Catogory="ORDER", new_pr="NEW").order_by('size')
+    print(ls_data)
+    return render(request,'all_products.html',{'products':ls_data})
