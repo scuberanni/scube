@@ -1,6 +1,7 @@
 from django.shortcuts import render , redirect ,HttpResponse
 from.forms import PrForm,OrderForm
 from.models import Scube_ss,orders
+from django.utils.dateparse import parse_date
 from django.contrib import messages
 from django.db.models import Sum
 from django.db.models import Q
@@ -106,20 +107,38 @@ def order_delcnf(request,pk):
 
     return render(request,'order_delcnf.html')
 
+Catogory_choice = [
+    ('CUPBOARD', 'CUPBOARD'),
+    ('TABLE', 'TABLE'),
+    ('BEDROOM-SET', 'BEDROOM-SET'),
+    ('POOJA-STAND', 'POOJA-STAND'),
+    ('TV-STAND', 'TV-STAND'),
+    ('SOFA', 'SOFA'),
+    ('OTHERS', 'OTHERS'),
+    ('ORDER', 'ORDER'),
+]
 
 def reports(request):
-    if request.method=='POST':
+    if request.method == 'POST':
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        category = request.POST.get('category')
 
-        S_date=request.POST.get('start_date')
-        E_date=request.POST.get('end_date')
-        P_rep=Scube_ss.objects.filter(pr_date__gte=S_date,pr_date__lte=E_date).order_by('pr_date')
+        filters = {}
+        if start_date:
+            filters['pr_date__gte'] = parse_date(start_date)
+        if end_date:
+            filters['pr_date__lte'] = parse_date(end_date)
+        if category:
+            filters['Catogory'] = category
 
-
-        return render ( request,'reports.html',{'PR_reports':P_rep})
+        production_reports = Scube_ss.objects.filter(**filters).order_by('pr_date')
+        
+        context = {'PR_reports': production_reports, 'Catogory_choice': Catogory_choice}
     else:
+        context = {'Catogory_choice': Catogory_choice}
 
-        return render(request,'reports.html',)
-
+    return render(request, 'reports.html', context)
 def sales_reports(request):
     if request.method=='POST':
 
