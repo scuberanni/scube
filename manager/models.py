@@ -6,9 +6,11 @@ from django.db import models
 
 status_choice= [ 
     ('SCUBE', 'SCUBE'),
-    ('GODOWN', 'GODOWN'),
+    ('THIRUVALLA', 'THIRUVALLA'),
     ('SALE', 'SALE'),
+    ('S-CUBE-DT', 'S-CUBE-DT'),
     ('ORDER','ORDER')
+
 ]
 new_choice= [ 
     ('NEW', 'NEW'),

@@ -20,6 +20,7 @@ urlpatterns = [
     path('details/<pk>',views.details,name='details'),
     path('order_delcnf/<pk>',views.order_delcnf,name='order_delcnf'),
     path('reports/',views.reports,name='reports'),
+    path('reports_s2s/',views.reports_s2s,name='reports_s2s'),
     path('sales_reports/',views.sales_reports,name='sales_reports'),
     path('show_cupboard/',views.show_cupboard,name='show_cupboard'),
     path('show_table/',views.show_table,name='show_table'),

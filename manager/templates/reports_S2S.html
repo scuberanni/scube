@@ -1,0 +1,105 @@
+{% extends 'blank_layout.html' %}
+{% load static %}
+
+{% block content %}
+<section class="container bg-primary rounded-top-4">
+    <div class="row pt-2">
+        <div class="col-12">
+            <h2>Production Report Summary</h2>
+        </div>
+        <div class="col-12">
+            <form action="" method="post" enctype="application/x-www-form-urlencoded">
+                {% csrf_token %}
+                <section>
+                    <div class="row">
+                        <div class="col-5 col-md-2">
+                            <h6 style="color: aliceblue;">Date From:</h6>
+                            <input type="date" name="start_date" style="width: 100%;">
+                        </div>
+                        <div class="col-5 col-md-2">
+                            <h6 style="color: aliceblue;">Date To:</h6>
+                            <input type="date" name="end_date" style="width: 100%;">
+                        </div>
+                        <div class="col-5 col-md-3">
+                            <h6 style="color: aliceblue;">Shop Name:</h6>
+                            <select name="status" style="width: 100%;">
+                                <option value="">Shop Name</option>
+                                {% for value, label in status_choice %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-6" style="padding-top: 28px;">
+                            <input style="height: 25px;" type="submit" value="VIEW">
+                        </div>
+                    </div>
+                </section>
+            </form>
+        </div>
+    </div>
+</section>
+
+<section class="container bg-primary rounded-bottom-4">
+    <div class="row">
+        <div class="col-12 col-md-12 mt-2">
+            <table class="css-serial table table-hover table-info table-striped table-bordered border-dark">
+                <thead class="table-dark text-center">
+                    <tr>
+                        <th scope="col">NO</th>
+                        <th scope="col">CODE</th>
+                        <th scope="col">DATE</th>
+                        <th scope="col">NAME</th>
+                        <th scope="col">SIZE</th>
+                        <th scope="col">COLOR</th>
+                        <th scope="col">MATERIAL</th>
+                        <th scope="col">PRIZE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product_obj in PR_reports %}
+                    <tr>
+                        <td class="text-center">{{ forloop.counter }}</td>
+                        <td>
+                            <a style="text-decoration: none;" href="{% url 'details' product_obj.id %}">
+                                {{ product_obj.code | upper }}
+                            </a>
+                        </td>
+                        <td>{{ product_obj.pr_date | date:"d-m-Y" }}</td>
+                        <td>{{ product_obj.name | upper }}</td>
+                        <td>{{ product_obj.size | upper }}</td>
+                        <td>{{ product_obj.color | upper }}</td>
+                        <td>{{ product_obj.material | upper }}</td>
+                        <td>{{ product_obj.prize }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <span id="totalPrize" class="fw-bold" style="color: aliceblue;"></span>
+        </div>
+    </div>
+</section>
+
+{% block javascript %}
+<script>
+    // JavaScript function to calculate and display the sum of prizes
+    function calculateTotalPrize() {
+        var total = 0;
+        // Iterate over each row of the table
+        document.querySelectorAll('table tbody tr').forEach(function(row) {
+            // Get the prize value from the row and convert it to a number
+            var prize = parseFloat(row.querySelector('td:last-child').textContent);
+            // Add the prize to the total
+            total += prize;
+        });
+        // Display the total prize in the designated element
+        document.getElementById('totalPrize').textContent = 'Total Prize: Rs ' + total.toFixed(2); // Adjust to your currency format
+    }
+
+    // Call the function when the document is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        calculateTotalPrize();
+    });
+</script>
+{% endblock %}
+
+{% endblock %}
