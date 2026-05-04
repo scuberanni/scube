@@ -1,0 +1,99 @@
+{% extends 'blank_layout.html' %}
+{% block content %}
+
+<div class="container mt-4 mb-5">
+    <div class="card shadow-lg border-0 rounded-4">
+        
+        <div class="card-header bg-dark text-white p-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-list-columns me-2"></i>PENDING PRODUCTION LIST</h5>
+            <div>
+                <a href="{% url 'production_entry' %}" class="btn btn-sm btn-warning fw-bold text-dark shadow-sm">
+                    <i class="bi bi-plus-circle me-1"></i> New Entry
+                </a>
+                <a href="{% url 'master_data' %}" class="btn btn-sm btn-outline-light fw-bold ms-1">
+                    Master Data
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body p-4 bg-white">
+            
+            <div class="table-responsive">
+                <table class="table table-hover align-middle border">
+                    <thead class="table-light text-center border-bottom border-dark">
+                        <tr>
+                            <th class="py-3">#</th>
+                            <th>DATE</th>
+                            <th>SOFA CODE</th>
+                            <th>IMAGE</th>
+                            <th class="text-end">GRAND TOTAL (₹)</th>
+                            <th>STATUS</th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center">
+                        {% for record in records %}
+                        <tr>
+                            <td class="fw-bold text-muted">{{ forloop.counter }}</td>
+                            <td class="fw-bold">{{ record.date|date:"d/m/Y" }}</td>
+                            <td><span class="badge bg-dark fs-6">{{ record.sofa_code }}</span></td>
+                            
+                            <!-- Image kanikkan -->
+                            <td>
+                                {% if record.image %}
+                                    <img src="{{ record.image.url }}" alt="Sofa" class="img-thumbnail shadow-sm" style="width: 50px; height: 50px; object-fit: cover;">
+                                {% else %}
+                                    <span class="text-muted small">No Image</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td class="text-end pe-4 fw-bold text-success fs-6">₹ {{ record.grand_total }}</td>
+                            
+                            <!-- STATUS (Since we only filter pending, it will always be pending here) -->
+                            <td>
+                                <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i> Pending</span>
+                            </td>
+                            
+                            <!-- ACTIONS (View, Approve, Delete) -->
+                            <td>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <!-- View Bill Button -->
+                                    <a href="{% url 'production_bill' record.id %}" class="btn btn-sm btn-outline-primary" title="View Bill">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                    
+                                    <!-- Approve Button -->
+                                    <form method="POST" action="{% url 'approve_production' record.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-success shadow-sm" onclick="return confirm('Are you sure you want to approve {{ record.sofa_code }}?');" title="Approve">
+                                            <i class="bi bi-check2-all">Approve</i>
+                                        </button>
+                                    </form>
+                                    
+                                    <!-- Delete Button -->
+                                    <form method="POST" action="{% url 'delete_production' record.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger shadow-sm" onclick="return confirm('Are you sure you want to DELETE {{ record.sofa_code }}? This cannot be undone.');" title="Delete">
+                                            <i class="bi bi-trash">Delete</i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                No pending production entries.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

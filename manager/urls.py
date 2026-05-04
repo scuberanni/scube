@@ -6,6 +6,16 @@ from . import views
 urlpatterns = [
 
     path('',views.home,name='home'),
+    path('master-data/', views.master_data_page, name='master_data'),
+    path('edit-material/<int:item_id>/', views.edit_material, name='edit_material'),
+    path('production-entry/', views.production_entry, name='production_entry'),
+
+    path('production-summary/', views.production_summary, name='production_summary'),
+    path('production-bill/<int:record_id>/', views.production_bill, name='production_bill'),
+    path('approve-production/<int:record_id>/', views.approve_production, name='approve_production'),
+    path('delete-production/<int:record_id>/', views.delete_production, name='delete_production'),
+    path('edit-production/<int:record_id>/', views.edit_production, name='edit_production'),
+
     path('create/',views.create,name='create'),
     path('reports/',views.reports,name='reports'),   
     path('list/',views.list,name='list'),

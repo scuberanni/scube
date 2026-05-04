@@ -1,0 +1,194 @@
+{% extends 'blank_layout.html' %}
+{% block content %}
+<style>
+    .calc-table input, .calc-table select { box-shadow: none !important; border-color: #dee2e6; }
+    .calc-table input:focus, .calc-table select:focus { border-color: #212529; background-color: #f8f9fa; }
+    .item-row td { vertical-align: middle; }
+</style>
+
+<div class="container mt-4 mb-5">
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+        <div class="card-header bg-primary text-white p-4 d-flex justify-content-between align-items-center">
+            <h4 class="mb-0 fw-bold"><i class="bi bi-pencil-square me-2"></i>EDIT PRODUCTION ({{ record.sofa_code }})</h4>
+            <a href="{% url 'production_bill' record.id %}" class="btn btn-outline-light btn-sm fw-bold shadow-sm rounded-pill px-3">Cancel</a>
+        </div>
+
+        <div class="card-body p-4 bg-light">
+            <form method="POST" action="" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row mb-4 bg-white p-3 rounded-4 shadow-sm border border-secondary-subtle">
+                    <!-- DATE -->
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label fw-bold text-secondary small mb-1">ENTRY DATE</label>
+                        <input type="date" class="form-control fw-bold" name="date" value="{{ record.date|date:'Y-m-d' }}" required>
+                    </div>
+                    <!-- NAME (NEW FIELD) -->
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label fw-bold text-secondary small mb-1">SOFA NAME</label>
+                        <input type="text" class="form-control fw-bold" name="sofa_name" value="{{ record.sofa_name|default:'' }}" placeholder="Eg: L Shape">
+                    </div>
+                    <!-- SIZE (NEW FIELD) -->
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label fw-bold text-secondary small mb-1">SIZE</label>
+                        <input type="text" class="form-control fw-bold" name="sofa_size" value="{{ record.sofa_size|default:'' }}" placeholder="Eg: 3+2+1">
+                    </div>
+                    <!-- COLOR (NEW FIELD) -->
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label fw-bold text-secondary small mb-1">COLOR</label>
+                        <input type="text" class="form-control fw-bold" name="sofa_color" value="{{ record.sofa_color|default:'' }}" placeholder="Eg: Black & Grey">
+                    </div>
+                    
+                    <!-- IMAGE -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold text-secondary small mb-1">UPDATE IMAGE (Optional)</label>
+                        <input type="file" class="form-control fw-bold" name="image" id="image-upload" accept="image/*">
+                        {% if record.image %}
+                            <small class="text-muted d-block mt-1">Current: <a href="{{ record.image.url }}" target="_blank">View Image</a></small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 bg-white calc-table border-secondary-subtle" id="materials-table">
+                            <thead class="table-dark text-center border-bottom border-dark">
+                                <tr>
+                                    <th class="py-3 ps-4 text-start" style="width: 25%;">MATERIAL NAME</th>
+                                    <th class="py-3" style="width: 25%;">CODE</th>
+                                    <th class="py-3" style="width: 15%;">QTY</th>
+                                    <th class="py-3" style="width: 15%;">PRIZE (₹)</th>
+                                    <th class="py-3 pe-4 text-end" style="width: 20%;">TOTAL (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="production-table-body">
+                                <!-- ALREADY SAVED ITEMS -->
+                                {% for item in items %}
+                                <tr class="item-row border-bottom">
+                                    <td class="text-start fw-bold text-dark ps-4 bg-light">
+                                        <input type="text" class="form-control border-0 bg-transparent fw-bold" name="mat_name" value="{{ item.material_name }}" required>
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle float-end shadow-sm mt-1" onclick="removeRow(this)"><i class="bi bi-trash-fill"></i></button>
+                                    </td>
+                                    <td>
+                                        <select class="form-select fw-bold text-dark" name="mat_code" onchange="updatePrice(this)">
+                                            <option value="" data-price="0">Select...</option>
+                                            {% for mat in materials %}
+                                                <option value="{{ mat.id }}" data-price="{{ mat.price }}" {% if item.material_code.id == mat.id %}selected{% endif %}>{{ mat.code }} ({{ mat.material.name }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td><input type="number" step="0.01" class="form-control text-center text-danger fw-bold qty-input" name="mat_qty" value="{{ item.quantity }}" onkeyup="calculateTotal()" onchange="calculateTotal()"></td>
+                                    <td><input type="number" step="0.01" class="form-control text-center text-dark fw-bold price-input" name="mat_price" value="{{ item.price }}" onkeyup="calculateTotal()" onchange="calculateTotal()"></td>
+                                    <td class="pe-4"><input type="number" step="0.01" class="form-control border-0 text-end fw-bold text-success row-total bg-transparent" name="mat_total" readonly value="{{ item.total }}"></td>
+                                </tr>
+                                {% endfor %}
+
+                                <!-- ADD BUTTON ROW -->
+                                <tr id="add-btn-row">
+                                    <td colspan="5" class="text-center py-3 bg-light">
+                                        <button type="button" class="btn btn-sm btn-dark rounded-pill shadow-sm px-4" onclick="addEmptyRow()"><i class="bi bi-plus-lg"></i> Add New Material</button>
+                                    </td>
+                                </tr>
+
+                                <!-- FIXED ROWS -->
+                                <tr class="bg-light border-bottom border-dark-subtle mt-2">
+                                    <td class="text-start fw-bold text-dark ps-4 border-end">OTHER</td>
+                                    <td colspan="3" class="border-end"><input type="text" class="form-control border-0 bg-transparent text-secondary" name="other_desc" value="{{ record.other_desc|default:'' }}" placeholder="Eg: rope, nails etc..."></td>
+                                    <td class="pe-4"><input type="number" step="0.01" class="form-control text-end fw-bold text-dark shadow-none" name="other_cost" value="{{ record.other_cost }}" onkeyup="calculateTotal()" onchange="calculateTotal()"></td>
+                                </tr>
+                                <tr class="bg-light border-bottom border-dark-subtle">
+                                    <td colspan="4" class="text-start fw-bold text-dark ps-4 border-end">WOOD</td>
+                                    <td class="pe-4"><input type="number" step="0.01" id="wood-cost" class="form-control text-end fw-bold text-dark shadow-none" name="wood_cost" value="{{ record.wood_cost }}" onkeyup="calculateTotal()" onchange="calculateTotal()"></td>
+                                </tr>
+                                <tr class="bg-light border-bottom border-dark-subtle">
+                                    <td colspan="4" class="text-start fw-bold text-dark ps-4 border-end">WAGE</td>
+                                    <td class="pe-4"><input type="number" step="0.01" id="wage-cost" class="form-control text-end fw-bold text-dark shadow-none" name="wage_cost" value="{{ record.wage_cost }}" onkeyup="calculateTotal()" onchange="calculateTotal()"></td>
+                                </tr>
+                                <tr class="bg-light border-bottom border-dark-subtle">
+                                    <td colspan="4" class="text-start fw-bold text-dark ps-4 border-end">PROFIT <span class="fw-normal text-muted small">(Auto-fill)</span></td>
+                                    <td class="pe-4"><input type="number" step="0.01" id="profit-amount" class="form-control border-0 bg-transparent text-end fw-bold text-primary shadow-none" name="profit_amount" value="{{ record.profit_amount }}" readonly></td>
+                                </tr>
+                            </tbody>
+                            
+                            <tfoot>
+                                <tr class="table-primary border-primary">
+                                    <td colspan="4" class="text-end fw-bold fs-5 align-middle pe-4 text-dark">GRAND TOTAL</td>
+                                    <td class="text-end pe-4">
+                                        <div class="d-flex align-items-center justify-content-end text-dark fw-bold fs-4">
+                                            <span class="me-1">₹</span><span id="grand-total-display">{{ record.grand_total }}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-end">
+                    <button type="submit" class="btn btn-primary btn-lg fw-bold shadow px-5 py-3 rounded-pill">
+                        <i class="bi bi-save2 me-2 fs-5"></i> UPDATE CHANGES
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- HIDDEN TEMPLATE FOR NEW ROW (JavaScript aayi add cheyyan) -->
+<table style="display:none;">
+    <tbody id="hidden-row-template">
+        <tr class="item-row border-bottom">
+            <td class="text-start fw-bold text-dark ps-4 bg-light border-end">
+                <input type="text" class="form-control fw-bold border-secondary-subtle" name="mat_name" placeholder="Type Category..." required>
+                <button type="button" class="btn btn-sm btn-outline-danger rounded-circle float-end shadow-sm mt-1" onclick="removeRow(this)"><i class="bi bi-trash-fill"></i></button>
+            </td>
+            <td>
+                <select class="form-select border-secondary-subtle fw-bold text-dark" name="mat_code" onchange="updatePrice(this)">
+                    <option value="" data-price="0">Select...</option>
+                    {% for mat in materials %}<option value="{{ mat.id }}" data-price="{{ mat.price }}">{{ mat.code }} ({{ mat.material.name }})</option>{% endfor %}
+                </select>
+            </td>
+            <td><input type="number" step="0.01" class="form-control border-secondary-subtle text-center text-danger fw-bold qty-input" name="mat_qty" placeholder="0" onkeyup="calculateTotal()" onchange="calculateTotal()"></td>
+            <td><input type="number" step="0.01" class="form-control border-secondary-subtle text-center text-dark fw-bold price-input" name="mat_price" placeholder="0.00" onkeyup="calculateTotal()" onchange="calculateTotal()"></td>
+            <td class="pe-4"><input type="number" step="0.01" class="form-control border-0 text-end fw-bold text-success row-total bg-transparent" name="mat_total" readonly value="0.00"></td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+    function updatePrice(selectElement) {
+        let price = selectElement.options[selectElement.selectedIndex].getAttribute('data-price');
+        let row = selectElement.closest('tr');
+        row.querySelector('.price-input').value = price;
+        calculateTotal(); 
+    }
+
+    function addEmptyRow() {
+        let template = document.getElementById('hidden-row-template').innerHTML;
+        let addBtnRow = document.getElementById('add-btn-row');
+        addBtnRow.insertAdjacentHTML('beforebegin', template);
+    }
+
+    function removeRow(btn) { btn.closest('tr').remove(); calculateTotal(); }
+
+    function calculateTotal() {
+        let rows = document.querySelectorAll('.item-row');
+        let grandTotal = 0;
+        rows.forEach(row => {
+            let qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+            let price = parseFloat(row.querySelector('.price-input').value) || 0;
+            let rowTotal = qty * price;
+            row.querySelector('.row-total').value = rowTotal.toFixed(2);
+            grandTotal += rowTotal;
+        });
+        
+        let otherCost = parseFloat(document.querySelector('input[name="other_cost"]').value) || 0;
+        let woodCost = parseFloat(document.getElementById('wood-cost').value) || 0;
+        let wageCost = parseFloat(document.getElementById('wage-cost').value) || 0;
+        
+        document.getElementById('profit-amount').value = wageCost.toFixed(2);
+        grandTotal += (otherCost + woodCost + wageCost + wageCost); // profit = wage
+        document.getElementById('grand-total-display').innerText = grandTotal.toFixed(2);
+    }
+</script>
+{% endblock %}

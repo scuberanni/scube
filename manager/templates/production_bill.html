@@ -1,0 +1,160 @@
+{% extends 'blank_layout.html' %}
+{% block content %}
+
+<!-- html2canvas Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<div class="container mt-4 mb-5">
+    <!-- IVIDE ID ADD CHEYTHU: bill-card -->
+    <div class="card shadow-lg border-0 rounded-4" id="bill-card">
+        
+        <!-- HEADER -->
+        <div class="card-header bg-dark text-white p-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-receipt me-2"></i>PRODUCTION BILL</h5>
+            
+            <div class="d-flex gap-2 flex-wrap justify-content-end no-print-section">
+                <!-- EDIT BUTTON -->
+                <a href="{% url 'edit_production' record.id %}" class="btn btn-sm btn-primary text-white fw-bold shadow-sm">
+                    <i class="bi bi-pencil-square me-1"></i> Edit Data
+                </a>
+                
+                <!-- DOWNLOAD PNG BUTTON -->
+                <button class="btn btn-sm btn-success text-white fw-bold shadow-sm" onclick="downloadBill()">
+                    <i class="bi bi-download me-1"></i> Download PNG
+                </button>
+                
+                <a href="{% url 'production_summary' %}" class="btn btn-sm btn-outline-light fw-bold">
+                    <i class="bi bi-arrow-left me-1"></i> Back to List
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body p-4 bg-white">
+            
+            <!-- SOFA MAIN DETAILS -->
+            <div class="row mb-4 border-bottom border-dark pb-3">
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <h6 class="text-muted mb-1 fw-bold">DATE</h6>
+                    <h5 class="fw-bold text-dark">{{ record.date|date:"d/m/Y" }}</h5>
+                    <div class="mt-2 status-section">
+                        {% if record.is_approved %}
+                            <span class="badge bg-success fs-6"><i class="bi bi-check-circle"></i> Approved</span>
+                        {% else %}
+                            <form method="POST" action="{% url 'approve_production' record.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-warning shadow-sm fw-bold text-dark border-dark" onclick="return confirm('Do you want to Approve this?');">
+                                    <i class="bi bi-check2-circle"></i> Click to Approve
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <h6 class="text-muted mb-1 fw-bold">SOFA CODE</h6>
+                    <h4 class="fw-bold text-primary">{{ record.sofa_code }}</h4>
+                </div>
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <h6 class="text-muted mb-1 fw-bold">DETAILS</h6>
+                    <span class="d-block fw-bold small text-dark"><i class="bi bi-box me-1"></i> Name: {{ record.sofa_name|default:"-" }}</span>
+                    <span class="d-block fw-bold small text-dark"><i class="bi bi-arrows-fullscreen me-1"></i> Size: {{ record.sofa_size|default:"-" }}</span>
+                    <span class="d-block fw-bold small text-dark"><i class="bi bi-palette me-1"></i> Color: {{ record.sofa_color|default:"-" }}</span>
+                </div>
+                <div class="col-md-3 text-md-end">
+                    {% if record.image %}
+                        <img src="{{ record.image.url }}" alt="Sofa Image" class="img-thumbnail rounded shadow-sm" style="max-height: 100px; object-fit: cover;">
+                    {% else %}
+                        <div class="text-muted small border rounded p-3 d-inline-block bg-light">No Image Available</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- MATERIALS USED TABLE -->
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered align-middle table-hover">
+                    <thead class="table-light text-center border-dark">
+                        <tr>
+                            <th class="text-start ps-3">MATERIAL CATEGORY</th>
+                            <th>ITEM CODE</th>
+                            <th>QTY</th>
+                            <th>PRIZE (₹)</th>
+                            <th class="text-end pe-3">TOTAL (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-dark">
+                        {% for item in items %}
+                        <tr>
+                            <td class="text-start fw-bold ps-3 text-secondary">{{ item.material_name }}</td>
+                            <td class="text-center fw-bold">{{ item.material_code.code }}</td>
+                            <td class="text-center text-danger fw-bold">{{ item.quantity }}</td>
+                            <td class="text-center fw-bold">{{ item.price }}</td>
+                            <td class="text-end pe-3 fw-bold">{{ item.total }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">No materials added.</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% if record.other_cost > 0 %}
+                        <tr class="bg-light">
+                            <td colspan="4" class="text-start fw-bold ps-3 text-dark">OTHER ({{ record.other_desc|default:"N/A" }})</td>
+                            <td class="text-end pe-3 fw-bold text-dark">{{ record.other_cost }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr class="bg-light">
+                            <td colspan="4" class="text-start fw-bold ps-3 text-dark">WOOD COST</td>
+                            <td class="text-end pe-3 fw-bold text-dark">{{ record.wood_cost }}</td>
+                        </tr>
+                        <tr class="bg-light">
+                            <td colspan="4" class="text-start fw-bold ps-3 text-dark">WAGE / LABOR</td>
+                            <td class="text-end pe-3 fw-bold text-dark">{{ record.wage_cost }}</td>
+                        </tr>
+                        <tr class="bg-light">
+                            <td colspan="4" class="text-start fw-bold ps-3 text-primary">PROFIT</td>
+                            <td class="text-end pe-3 fw-bold text-primary">{{ record.profit_amount }}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="border-dark">
+                        <tr class="table-primary border-primary">
+                            <td colspan="4" class="text-end fw-bold fs-5 pe-4 text-dark">GRAND TOTAL</td>
+                            <td class="text-end pe-3 text-dark fw-bold fs-4">₹ {{ record.grand_total }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function downloadBill() {
+        const billSection = document.getElementById('bill-card');
+        
+        // Image-il varathirikkan buttons hide cheyyunnu
+        const navButtons = billSection.querySelector('.no-print-section');
+        const statusButtons = billSection.querySelector('.status-section');
+        
+        if(navButtons) navButtons.style.display = 'none';
+        if(statusButtons) statusButtons.style.display = 'none';
+
+        html2canvas(billSection, {
+            scale: 3, // High resolution quality
+            useCORS: true, 
+            backgroundColor: "#ffffff",
+            logging: false
+        }).then(canvas => {
+            // Buttons thirichu kanikkunnu
+            if(navButtons) navButtons.style.display = 'flex';
+            if(statusButtons) statusButtons.style.display = 'block';
+
+            // PNG Download
+            const link = document.createElement('a');
+            link.download = 'Sofa-Bill-{{ record.sofa_code }}.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+</script>
+
+{% endblock %}

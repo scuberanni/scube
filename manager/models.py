@@ -1,5 +1,6 @@
 
 from django.db import models
+from django.shortcuts import render
 
 
 # Create your models here.
@@ -57,3 +58,71 @@ class orders(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class MaterialName(models.Model):
+    name = models.CharField(max_length=100, unique=True) 
+
+    def __str__(self):
+        return self.name
+
+# 2. Ningal paranja Main Table
+class Material(models.Model):
+    # 1- MATERIAL (Mugalile MaterialName table-ilekk link cheythirikkunnu)
+    material = models.ForeignKey(MaterialName, on_delete=models.CASCADE, verbose_name="Material Name") 
+    
+    # 2- CODE (Unique - Oru code orikkal mathrame add cheyyan pattu)
+    code = models.CharField(max_length=100, unique=True, verbose_name="Item Code")
+    
+    # 3- DESCRIPTION (Not compulsory - null=True, blank=True koduthal athu nirbandham alla ennartham)
+    description = models.TextField(null=True, blank=True)
+    
+    # 4- PRIZE (Decimal field aanu paisakk ettavum nallathu)
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Prize")
+
+    def __str__(self):
+        return f"{self.material.name} - {self.code}"
+    
+
+# models.py-il avasanamayi add cheyyuka
+
+# Sofa Production Main Details (Date, Sofa Code, Grand Total)
+class SofaProductionRecord(models.Model):
+    date = models.DateField()
+    sofa_code = models.CharField(max_length=100, unique=True)
+    image = models.ImageField(upload_to='production_images/', null=True, blank=True)
+    sofa_name = models.CharField(max_length=150, null=True, blank=True)
+    sofa_size = models.CharField(max_length=100, null=True, blank=True)
+    sofa_color = models.CharField(max_length=100, null=True, blank=True)
+    
+    # Fixed Costs
+    other_desc = models.CharField(max_length=200, null=True, blank=True)
+    other_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    wood_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    wage_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    profit_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    
+    # Grand Total & Status
+    grand_total = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    
+    # PUTHIYATHAYI ADD CHEYYENDA FIELD
+    is_approved = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.sofa_code
+
+# Materials Used for a specific Sofa
+class ProductionMaterialItem(models.Model):
+    production = models.ForeignKey(SofaProductionRecord, on_delete=models.CASCADE, related_name='items')
+    # Row name (Eg: SUPERSOFT, FORM) save cheyyan
+    material_name = models.CharField(max_length=100) 
+    # Selected code from dropdown (link to Material model)
+    material_code = models.ForeignKey(Material, on_delete=models.SET_NULL, null=True, blank=True) 
+    
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def __str__(self):
+        return f"{self.material_name} for {self.production.sofa_code}"
+    
