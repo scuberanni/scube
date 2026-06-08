@@ -1,0 +1,425 @@
+{% extends 'blank_layout.html' %}
+{% block content %}
+
+<body class="bg-light">
+
+    <!-- MASTER PRODUCT LIST (HIDDEN) -->
+    <select id="all-products-master" style="display:none;">
+        {% for p in all_products %}
+            <option value="{{ p.id }}" data-category="{{ p.pb_category }}">{{ p.pb_name }}</option>
+        {% endfor %}
+    </select>
+
+    <div class="container mt-4 mb-5">
+        
+        <!-- HEADER & NAVBAR -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 border-bottom pb-3 no-print gap-3">
+            <h2 class="text-primary m-0 text-center text-md-start"><i class="bi bi-file-earmark-plus-fill me-2"></i>Board Production Entry</h2>
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <a href="{% url 'board_production_summary' %}" class="btn btn-outline-info btn-sm fw-bold shadow-sm"><i class="bi bi-table me-1"></i> Summary</a>
+                <a href="{% url 'board_production_entry' %}" class="btn btn-primary btn-sm fw-bold shadow-sm"><i class="bi bi-file-earmark-plus-fill me-1"></i> New Entry</a>
+                <a href="{% url 'product_master' %}" class="btn btn-outline-secondary btn-sm shadow-sm"><i class="bi bi-house-door me-1"></i> Master</a>
+            </div>
+        </div>
+
+        <form method="POST" action="" enctype="multipart/form-data" id="production-form">
+            {% csrf_token %}
+            
+            <!-- DATE SECTION -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-body p-3">
+                    <div class="row align-items-center">
+                        <div class="col-12 col-md-3 mb-2 mb-md-0 text-center text-md-start">
+                            <label class="form-label fw-bold text-secondary mb-0 small">ENTRY DATE</label>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-0 text-primary fs-5"><i class="bi bi-calendar-check"></i></span>
+                                <input type="date" name="entry_date" class="form-control border-0 fw-bold fs-6" required value="{% now 'Y-m-d' %}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAIN PRODUCTION AREA -->
+            <div id="category-repeater">
+                <!-- SINGLE CATEGORY BLOCK -->
+                <div class="card shadow-sm border-0 rounded-4 mb-4 category-block">
+                    <div class="row g-0">
+                        
+                        <!-- LEFT COLUMN (CATEGORY) -->
+                        <div class="col-12 col-md-3 bg-white rounded-top-4 rounded-md-top-0 rounded-md-start-4 border-bottom border-md-bottom-0 border-md-end">
+                            <div class="p-3 d-flex flex-row flex-md-column align-items-center align-items-md-start justify-content-between h-100 gap-2">
+                                <div class="w-100">
+                                    <label class="form-label fw-bold text-secondary mb-1 small text-uppercase d-block text-center text-md-start">Category</label>
+                                    <select name="category_ids[]" class="form-select form-select-lg border-0 bg-transparent fw-bold text-dark fs-5 category-select text-center text-md-start" required onchange="filterProducts(this)">
+                                        <option value="" selected>Choose Category...</option>
+                                        {% for code, name in categories %}
+                                            <option value="{{ code }}">{{ name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mt-md-auto pt-md-4 no-print text-center">
+                                    <button type="button" class="btn btn-sm btn-outline-danger shadow-sm remove-category-btn" onclick="removeCategory(this)" style="display:none;" title="Remove Category Block">
+                                        <i class="bi bi-trash fs-5 fs-md-6"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT COLUMN (PRODUCT ROWS) -->
+                        <div class="col-12 col-md-9 bg-white rounded-bottom-4 rounded-md-bottom-0 rounded-md-end-4">
+                            <div class="p-0 row-repeater">
+                                
+                                <!-- HEADER ROW (Hidden on Mobile) -->
+                                <div class="row g-0 p-3 pb-2 labels-row text-center border-bottom bg-light d-none d-md-flex">
+                                    <div class="col-md-5"><label class="small fw-bold text-secondary text-uppercase">Product Name</label></div>
+                                    <div class="col-md-3"><label class="small fw-bold text-secondary text-uppercase">Color</label></div>
+                                    <div class="col-md-3"><label class="small fw-bold text-secondary text-uppercase">Image</label></div>
+                                    <div class="col-md-1"></div>
+                                </div>
+
+                                <!-- PRODUCT DATA ROW -->
+                                <div class="row g-0 p-3 pt-md-2 pb-md-2 align-items-center product-row border-bottom border-light">
+                                    
+                                    <!-- 1. STANDARD PRODUCT DIV -->
+                                    <div class="col-12 col-md-5 pe-md-2 mb-2 mb-md-0 standard-product-div">
+                                        <div class="input-group shadow-sm">
+                                            <select name="product_ids[]" class="form-select border-primary fw-bold text-dark product-select" required>
+                                                <option value="" selected>Select Product...</option>
+                                            </select>
+                                            <button type="button" class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#addProductModal" title="Add New Product">
+                                                <i class="bi bi-plus-lg"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- 2. CUSTOM ORDER DIV -->
+                                    <div class="col-12 col-md-5 pe-md-2 mb-2 mb-md-0 custom-product-div d-none">
+                                        <div class="d-flex flex-column gap-2 bg-light p-2 rounded border border-danger shadow-sm">
+                                            <input type="text" name="custom_names[]" class="form-control border-danger fw-bold custom-name" placeholder="Order Product Name *">
+                                            <div class="d-flex gap-2">
+                                                <input type="text" name="custom_sizes[]" class="form-control form-control-sm border-danger custom-size" placeholder="Size">
+                                                <select name="custom_materials[]" class="form-select form-select-sm border-danger custom-material">
+                                                    <option value="" selected>Material...</option>
+                                                    {% for m in materials %}
+                                                        <option value="{{ m.material }}">{{ m.material }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <input type="number" step="0.01" name="custom_wages[]" class="form-control form-control-sm border-danger fw-bold text-danger custom-wage" placeholder="Wage (₹) *">
+                                                <input type="number" step="0.01" name="custom_prizes[]" class="form-control form-control-sm border-success fw-bold text-success custom-prize" placeholder="Prize (₹)">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- COLOR -->
+                                    <div class="col-12 col-md-3 pe-md-2 mb-2 mb-md-0">
+                                        <select name="color_ids[]" class="form-select border-warning shadow-sm fw-bold text-dark color-select">
+                                            <option value="" selected>Choose Color...</option>
+                                            {% for c in colors %}
+                                                <option value="{{ c.id }}">{{ c.color }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- IMAGE -->
+                                    <div class="col-10 col-md-3 pe-2 pe-md-2 mb-0">
+                                        <div class="input-group shadow-sm">
+                                            <input type="file" name="product_images[]" class="form-control border-info form-control-sm" accept="image/*" onchange="previewImage(this)">
+                                            <span class="input-group-text p-0 bg-transparent border-0" style="display:none;">
+                                                <img src="#" alt="Preview" class="rounded preview-img img-thumbnail ms-1" style="height: 38px; width: 38px; object-fit: cover;">
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- DELETE ROW BUTTON -->
+                                    <div class="col-2 col-md-1 text-end text-md-center no-print mb-0">
+                                        <button type="button" class="btn btn-outline-danger shadow-sm remove-row-btn w-100" onclick="removeRow(this)" style="display:none;">
+                                            <i class="bi bi-x-lg fw-bold"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="no-print p-2 text-center bg-light rounded-bottom-4 rounded-md-bottom-0 rounded-md-end-4 border-top">
+                                <button type="button" class="btn btn-sm btn-dark rounded-pill shadow add-row-btn fw-bold px-4 py-2" onclick="addProductRow(this)">
+                                    <i class="bi bi-plus-lg fs-6"></i> Add Row
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="no-print mb-5 mt-3 text-center text-md-start pb-5">
+                <button type="button" class="btn btn-primary rounded-pill shadow fw-bold px-4 py-2" onclick="addCategoryBlock()">
+                    <i class="bi bi-plus-lg me-1 fs-5"></i> Add New Category Block
+                </button>
+            </div>
+
+            <div class="fixed-bottom p-3 bg-white border-top shadow no-print text-center text-md-end z-3">
+                <button type="submit" class="btn btn-success btn-lg fw-bold px-4 px-md-5 py-2 py-md-3 shadow rounded-pill w-100" style="max-width: 400px;">
+                    <i class="bi bi-check-circle-fill me-2 fs-5"></i> SAVE ENTRY
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- ADD PRODUCT MODAL (POPUP) -->
+    <!-- ============================================== -->
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-primary text-white border-bottom-0 rounded-top-4">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-cart-plus me-2"></i>Quick Add Product</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="ajax-add-product-form">
+                    {% csrf_token %}
+                    <div class="modal-body p-4 row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small text-secondary">Category</label>
+                            <select name="pb_category" class="form-select border-primary" required id="modal-category-select">
+                                <option value="" disabled selected>Select Category...</option>
+                                {% for code, name in categories %}
+                                    <option value="{{ code }}">{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small text-secondary">Product Name</label>
+                            <input type="text" name="pb_name" class="form-control border-primary" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold small text-secondary">Size</label>
+                            <input type="text" name="pb_size" class="form-control border-primary">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold small text-secondary">Material</label>
+                            <select name="pb_material" class="form-select border-primary">
+                                <option value="">Choose...</option>
+                                {% for m in materials %}
+                                    <option value="{{ m.material }}">{{ m.material }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold small text-secondary">Wage (₹)</label>
+                            <input type="number" step="0.01" name="pb_wage" class="form-control border-primary" value="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small text-secondary">Selling Prize (₹)</label>
+                            <input type="number" step="0.01" name="pb_prize" class="form-control border-primary" value="0" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small text-secondary">Description</label>
+                            <input type="text" name="pb_description" class="form-control border-primary">
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light border-top-0 rounded-bottom-4">
+                        <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary fw-bold px-4">Save Product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        function filterProducts(selectElement) {
+            const categoryValue = selectElement.value;
+            const categoryBlock = selectElement.closest('.category-block');
+            const isOrder = categoryValue === 'ORDER';
+
+            const standardDivs = categoryBlock.querySelectorAll('.standard-product-div');
+            const customDivs = categoryBlock.querySelectorAll('.custom-product-div');
+            const productSelects = categoryBlock.querySelectorAll('.product-select');
+
+            if (isOrder) {
+                standardDivs.forEach(div => div.classList.add('d-none'));
+                productSelects.forEach(sel => sel.required = false);
+
+                customDivs.forEach(div => div.classList.remove('d-none'));
+                categoryBlock.querySelectorAll('.custom-name').forEach(inp => inp.required = true);
+                categoryBlock.querySelectorAll('.custom-wage').forEach(inp => inp.required = true);
+            } else {
+                standardDivs.forEach(div => div.classList.remove('d-none'));
+                productSelects.forEach(sel => {
+                    sel.required = true;
+                    sel.innerHTML = '<option value="" selected>Select Product...</option>';
+                    const options = document.getElementById('all-products-master').querySelectorAll(`option[data-category="${categoryValue}"]`);
+                    options.forEach(opt => {
+                        sel.innerHTML += `<option value="${opt.value}">${opt.innerHTML}</option>`;
+                    });
+                });
+
+                customDivs.forEach(div => div.classList.add('d-none'));
+                categoryBlock.querySelectorAll('.custom-name').forEach(inp => {
+                    inp.required = false;
+                    inp.value = ''; // Backend confusion ഒഴിവാക്കാൻ ഇത് ക്ലിയർ ചെയ്യുന്നു
+                });
+                categoryBlock.querySelectorAll('.custom-wage').forEach(inp => {
+                    inp.required = false;
+                    inp.value = '';
+                });
+            }
+        }
+
+        function addProductRow(btn) {
+            const repeater = btn.closest('.col-12.col-md-9').querySelector('.row-repeater');
+            const rows = repeater.querySelectorAll('.product-row');
+            const firstRow = rows[0];
+            const newRow = firstRow.cloneNode(true); 
+
+            newRow.querySelector('.product-select').selectedIndex = 0;
+            
+            newRow.querySelector('.custom-name').value = '';
+            newRow.querySelector('.custom-size').value = '';
+            newRow.querySelector('.custom-material').selectedIndex = 0;
+            newRow.querySelector('.custom-wage').value = '';
+            newRow.querySelector('.custom-prize').value = '';
+
+            newRow.querySelector('.color-select').selectedIndex = 0;
+            newRow.querySelector('input[type="file"]').value = ''; 
+            newRow.querySelector('.preview-img').src = '#'; 
+            newRow.querySelector('.input-group-text').style.display = 'none'; 
+
+            const removeBtn = newRow.querySelector('.remove-row-btn');
+            if (removeBtn) removeBtn.style.display = 'inline-block';
+
+            repeater.appendChild(newRow); 
+        }
+
+        function removeRow(btn) {
+            btn.closest('.product-row').remove();
+        }
+
+        function addCategoryBlock() {
+            const repeater = document.getElementById('category-repeater');
+            const firstBlock = repeater.querySelector('.category-block');
+            const newBlock = firstBlock.cloneNode(true); 
+
+            newBlock.querySelector('.category-select').selectedIndex = 0;
+
+            const rowRepeater = newBlock.querySelector('.row-repeater');
+            const rows = rowRepeater.querySelectorAll('.product-row');
+            
+            for(let i=1; i<rows.length; i++) rows[i].remove();
+            
+            const firstRow = rows[0];
+            
+            firstRow.querySelector('.product-select').innerHTML = '<option value="" selected>Select Product...</option>'; 
+            firstRow.querySelector('.product-select').selectedIndex = 0;
+            firstRow.querySelector('.product-select').required = true;
+            firstRow.querySelector('.standard-product-div').classList.remove('d-none');
+
+            firstRow.querySelector('.custom-name').value = '';
+            firstRow.querySelector('.custom-name').required = false;
+            firstRow.querySelector('.custom-size').value = '';
+            firstRow.querySelector('.custom-material').selectedIndex = 0;
+            firstRow.querySelector('.custom-wage').value = '';
+            firstRow.querySelector('.custom-wage').required = false;
+            firstRow.querySelector('.custom-prize').value = '';
+            firstRow.querySelector('.custom-product-div').classList.add('d-none');
+
+            firstRow.querySelector('.color-select').selectedIndex = 0;
+            firstRow.querySelector('input[type="file"]').value = '';
+            firstRow.querySelector('.preview-img').src = '#';
+            firstRow.querySelector('.input-group-text').style.display = 'none';
+            firstRow.querySelector('.remove-row-btn').style.display = 'none'; 
+
+            const removeCatBtn = newBlock.querySelector('.remove-category-btn');
+            removeCatBtn.style.display = 'block';
+
+            repeater.appendChild(newBlock);
+        }
+
+        function removeCategory(btn) {
+            btn.closest('.category-block').remove();
+        }
+
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                const previewImg = input.closest('.input-group').querySelector('.preview-img');
+                const previewSpan = input.closest('.input-group').querySelector('.input-group-text');
+
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewSpan.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // AJAX Add Product
+        document.getElementById('ajax-add-product-form').addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            const formData = new FormData(this);
+            
+            const saveBtn = this.querySelector('button[type="submit"]');
+            saveBtn.innerHTML = 'Saving...';
+            saveBtn.disabled = true;
+
+            fetch("{% url 'ajax_add_product' %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                saveBtn.innerHTML = 'Save Product';
+                saveBtn.disabled = false;
+
+                if (data.status === 'success') {
+                    document.querySelector('#addProductModal .btn-close').click();
+                    setTimeout(() => {
+                        document.body.classList.remove('modal-open');
+                        document.body.style.overflow = '';
+                        document.body.style.paddingRight = '';
+                        document.querySelectorAll('.modal-backdrop').forEach(bg => bg.remove());
+                    }, 300);
+                    
+                    const masterSelect = document.getElementById('all-products-master');
+                    masterSelect.innerHTML += `<option value="${data.id}" data-category="${data.category}">${data.name}</option>`;
+                    
+                    document.getElementById('ajax-add-product-form').reset();
+                    
+                    document.querySelectorAll('.category-select').forEach(select => {
+                        if(select.value === data.category) {
+                            filterProducts(select);
+                        }
+                    });
+                } else {
+                    alert('Error adding product: ' + data.message);
+                }
+            })
+            .catch(error => {
+                saveBtn.innerHTML = 'Save Product';
+                saveBtn.disabled = false;
+                console.error('Error:', error);
+                alert("Something went wrong!");
+            });
+        });
+
+        document.getElementById('addProductModal').addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget; 
+            const categoryBlock = button.closest('.category-block');
+            const selectedCategory = categoryBlock.querySelector('.category-select').value;
+            
+            if(selectedCategory && selectedCategory !== 'ORDER') {
+                document.getElementById('modal-category-select').value = selectedCategory;
+            }
+        });
+    </script> 
+    
+</body>
+
+{% endblock %}

@@ -1,92 +1,74 @@
-
 from django.db import models
-from django.shortcuts import render
+from io import BytesIO
+from PIL import Image
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import sys
 
-
-# Create your models here.
-
-status_choice= [ 
+status_choice = [ 
     ('SCUBE', 'SCUBE'),
     ('THIRUVALLA', 'THIRUVALLA'),
     ('SALE', 'SALE'),
     ('S-CUBE-DT', 'S-CUBE-DT'),
-    ('ORDER','ORDER')
-
+    ('ORDER', 'ORDER')
 ]
-new_choice= [ 
+
+new_choice = [ 
     ('NEW', 'NEW'),
 ]
 
-
-Catogory_choice= [ 
+Catogory_choice = [ 
     ('CUPBOARD', 'CUPBOARD'),
     ('TABLE', 'TABLE'),
     ('BEDROOM-SET', 'BEDROOM-SET'),
-    ('POOJA-STAND','POOJA-STAND'),
-    ('TV-STAND','TV-STAND'),
-    ('SOFA','SOFA'),
-    ('OTHERS','OTHERS'),
-    ('ORDER','ORDER'),
-    
+    ('POOJA-STAND', 'POOJA-STAND'),
+    ('TV-STAND', 'TV-STAND'),
+    ('SOFA', 'SOFA'),
+    ('OTHERS', 'OTHERS'),
+    ('ORDER', 'ORDER'),
 ]
 
-
-
 class Scube_ss(models.Model):
-    code=models.CharField(max_length=50 ,null=True)
-    Catogory= models.CharField(choices=Catogory_choice , max_length=50 ,null=True )
-    name=models.CharField(max_length=50 ,null=True)
-    size=models.CharField(max_length=50 ,null=True,blank=True)
-    prize=models.IntegerField(null=True,blank=True)
-    material=models.CharField(max_length=50 ,null=True)
-    color=models.CharField(max_length=50 ,null=True,blank=True)
-    pr_date=models.DateField(null=True)
-    sl_date=models.DateField(null=True, blank=True)
-    status= models.CharField(choices=status_choice , max_length=50 ,null=True )
-    image=models.ImageField(upload_to='images/',blank=True)
-    new_pr= models.CharField(choices=new_choice , max_length=50 ,null=True,blank=True )
+    code = models.CharField(max_length=50, null=True)
+    Catogory = models.CharField(choices=Catogory_choice, max_length=50, null=True)
+    name = models.CharField(max_length=50, null=True)
+    size = models.CharField(max_length=50, null=True, blank=True)
+    prize = models.IntegerField(null=True, blank=True)
+    material = models.CharField(max_length=50, null=True)
+    color = models.CharField(max_length=50, null=True, blank=True)
+    pr_date = models.DateField(null=True)
+    sl_date = models.DateField(null=True, blank=True)
+    status = models.CharField(choices=status_choice, max_length=50, null=True)
+    image = models.ImageField(upload_to='images/', blank=True)
+    new_pr = models.CharField(choices=new_choice, max_length=50, null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
 class orders(models.Model):
-    name=models.CharField(max_length=50 ,null=True,)
-    size=models.CharField(max_length=50 ,null=True,blank=True)
-    color=models.CharField(max_length=50 ,null=True,blank=True)
-    image=models.ImageField(upload_to='images/',blank=True)
-    details=models.CharField(max_length=150 ,null=True, blank=True)    
+    name = models.CharField(max_length=50, null=True)
+    size = models.CharField(max_length=50, null=True, blank=True)
+    color = models.CharField(max_length=50, null=True, blank=True)
+    image = models.ImageField(upload_to='images/', blank=True)
+    details = models.CharField(max_length=150, null=True, blank=True)    
 
     def __str__(self):
-        return self.name
+        return str(self.name)
     
-
 class MaterialName(models.Model):
     name = models.CharField(max_length=100, unique=True) 
 
     def __str__(self):
         return self.name
 
-# 2. Ningal paranja Main Table
 class Material(models.Model):
-    # 1- MATERIAL (Mugalile MaterialName table-ilekk link cheythirikkunnu)
     material = models.ForeignKey(MaterialName, on_delete=models.CASCADE, verbose_name="Material Name") 
-    
-    # 2- CODE (Unique - Oru code orikkal mathrame add cheyyan pattu)
     code = models.CharField(max_length=100, unique=True, verbose_name="Item Code")
-    
-    # 3- DESCRIPTION (Not compulsory - null=True, blank=True koduthal athu nirbandham alla ennartham)
     description = models.TextField(null=True, blank=True)
-    
-    # 4- PRIZE (Decimal field aanu paisakk ettavum nallathu)
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Prize")
 
     def __str__(self):
         return f"{self.material.name} - {self.code}"
-    
 
-# models.py-il avasanamayi add cheyyuka
-
-# Sofa Production Main Details (Date, Sofa Code, Grand Total)
 class SofaProductionRecord(models.Model):
     date = models.DateField()
     sofa_code = models.CharField(max_length=100, unique=True)
@@ -95,30 +77,22 @@ class SofaProductionRecord(models.Model):
     sofa_size = models.CharField(max_length=100, null=True, blank=True)
     sofa_color = models.CharField(max_length=100, null=True, blank=True)
     
-    # Fixed Costs
     other_desc = models.CharField(max_length=200, null=True, blank=True)
     other_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     wood_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     wage_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     profit_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     
-    # Grand Total & Status
     grand_total = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    
-    # PUTHIYATHAYI ADD CHEYYENDA FIELD
     is_approved = models.BooleanField(default=False)
 
     def __str__(self):
         return self.sofa_code
 
-# Materials Used for a specific Sofa
 class ProductionMaterialItem(models.Model):
     production = models.ForeignKey(SofaProductionRecord, on_delete=models.CASCADE, related_name='items')
-    # Row name (Eg: SUPERSOFT, FORM) save cheyyan
     material_name = models.CharField(max_length=100) 
-    # Selected code from dropdown (link to Material model)
     material_code = models.ForeignKey(Material, on_delete=models.SET_NULL, null=True, blank=True) 
-    
     quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -126,3 +100,93 @@ class ProductionMaterialItem(models.Model):
     def __str__(self):
         return f"{self.material_name} for {self.production.sofa_code}"
     
+class BoardColor(models.Model):
+    color = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.color
+
+class BoardMaterial(models.Model):
+    material = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.material
+
+class ProductItem(models.Model):
+    pb_category = models.CharField(choices=Catogory_choice, max_length=50, verbose_name="Category")
+    pb_name = models.CharField(max_length=150, unique=True, verbose_name="Product Name")
+    pb_size = models.CharField(max_length=100, null=True, blank=True, verbose_name="Size")
+    pb_material = models.CharField(max_length=100, null=True, blank=True, verbose_name="Material")
+    pb_wage = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Wage")
+    pb_prize = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Prize")
+    pb_description = models.TextField(null=True, blank=True, verbose_name="Description")
+
+    def __str__(self):
+        return self.pb_name
+
+class BoardProductionRecord(models.Model):
+    cl_code = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    cl_Catogory = models.CharField(max_length=50, null=True, blank=True)
+    cl_name = models.CharField(max_length=150, null=True, blank=True)
+    cl_size = models.CharField(max_length=100, null=True, blank=True)
+    cl_prize = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    cl_wage = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    cl_material = models.CharField(max_length=100, null=True, blank=True)
+    cl_color = models.CharField(max_length=100, null=True, blank=True)
+    cl_pr_date = models.DateField(null=True, blank=True)
+    cl_status = models.CharField(max_length=50, default="SCUBE")
+    cl_image = models.ImageField(upload_to='board_images/', null=True, blank=True)
+    is_approved = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if not self.cl_code:
+            last_record = BoardProductionRecord.objects.order_by('-id').first()
+            if last_record and last_record.cl_code and last_record.cl_code.startswith('SCPB_'):
+                try:
+                    last_num = int(last_record.cl_code.split('_')[1])
+                    self.cl_code = f"SCPB_{last_num + 1:02d}"
+                except ValueError:
+                    self.cl_code = "SCPB_01"
+            else:
+                self.cl_code = "SCPB_01"
+
+        if self.cl_image and not getattr(self, '_image_compressed', False):
+            img = Image.open(self.cl_image)
+            output = BytesIO()
+
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+
+            quality = 85
+            img.save(output, format='JPEG', quality=quality)
+            while output.tell() > 150 * 1024 and quality > 10:
+                output.seek(0)
+                output.truncate()
+                quality -= 5
+                img.save(output, format='JPEG', quality=quality)
+
+            output.seek(0)
+            self.cl_image = InMemoryUploadedFile(
+                output, 'ImageField', f"{self.cl_image.name.split('.')[0]}.jpg",
+                'image/jpeg', sys.getsizeof(output), None
+            )
+            self._image_compressed = True
+
+        super(BoardProductionRecord, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return str(self.cl_name)
+
+class PB_Paid_Entry(models.Model):
+    PAYMENT_MODE_CHOICES = [
+        ('CASH', 'CASH'),
+        ('GPAY', 'GPAY'),
+    ]
+
+    date = models.DateField(verbose_name="Date")
+    amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Amount")
+    description = models.CharField(max_length=255, null=True, blank=True, verbose_name="Description")
+    payment_mode = models.CharField(max_length=10, choices=PAYMENT_MODE_CHOICES, default='CASH', verbose_name="Payment Mode")
+
+    def __str__(self):
+        return f"{self.date} - {self.amount} ({self.payment_mode})"

@@ -1,0 +1,235 @@
+{% extends 'blank_layout.html' %}
+{% block content %}
+
+<div class="container mt-4 mb-5">
+    <div class="card shadow-lg border-0 rounded-4">
+        
+        <!-- HEADER SECTION -->
+        <div class="card-header bg-primary text-white p-3 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <h5 class="mb-0 fw-bold">
+                <i class="bi bi-list-columns me-2"></i>PENDING BOARD PRODUCTION
+            </h5>
+            <div>
+                <a href="{% url 'board_production_entry' %}" class="btn btn-sm btn-warning fw-bold text-dark shadow-sm">
+                    <i class="bi bi-plus-circle me-1"></i> New Entry
+                </a>
+                <a href="{% url 'product_master' %}" class="btn btn-sm btn-outline-light fw-bold ms-1">
+                    Master Data
+                </a>
+            </div>
+        </div>
+
+        <!-- BODY SECTION -->
+        <div class="card-body p-4 bg-white">
+            
+            <div class="table-responsive">
+                <table class="table table-hover align-middle border">
+                    <thead class="table-light text-center border-bottom border-dark">
+                        <tr>
+                            <th class="py-3">#</th>
+                            <th>DATE</th>
+                            <th>CODE</th>
+                            <th>CATEGORY</th>
+                            <th class="text-start">PRODUCT NAME</th>
+                            <th>IMAGE</th>
+                            <th>STATUS</th>
+                            <th class="text-end">WAGE (₹)</th>
+                            <th class="text-end">PRIZE (₹)</th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center">
+                        {% for record in records %}
+                        <tr>
+                            <td class="fw-bold text-muted">{{ forloop.counter }}</td>
+                            <td class="fw-bold">{{ record.cl_pr_date|date:"d/m/Y" }}</td>
+                            <td><span class="badge bg-dark fs-6">{{ record.cl_code }}</span></td>
+                            <td class="fw-bold text-secondary">{{ record.cl_Catogory }}</td>
+                            
+                            <!-- Product Name & Details -->
+                            <td class="text-start">
+                                <span class="fw-bold text-dark">{{ record.cl_name }}</span><br>
+                                <small class="text-muted">
+                                    {% if record.cl_size %}{{ record.cl_size }}{% endif %} 
+                                    {% if record.cl_color %} | {{ record.cl_color }}{% endif %}
+                                </small>
+                            </td>
+                            
+                            <!-- Image -->
+                            <td>
+                                {% if record.cl_image %}
+                                    <img src="{{ record.cl_image.url }}" alt="Board" class="img-thumbnail shadow-sm" style="width: 50px; height: 50px; object-fit: cover;">
+                                {% else %}
+                                    <span class="text-muted small border rounded p-1">No Image</span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Status Label in Table -->
+                            <td>
+                                <span class="badge bg-info text-dark">{{ record.cl_status }}</span>
+                            </td>
+
+                            <td class="text-end fw-bold text-danger">₹ {{ record.cl_wage }}</td>
+                            <td class="text-end pe-4 fw-bold text-success fs-6">₹ {{ record.cl_prize }}</td>
+                            
+                            <!-- ACTIONS (Approve, Edit & Delete) -->
+                            <td>
+                                <div class="d-flex justify-content-center gap-2">
+                                    
+                                    <!-- Approve Button -->
+                                    <form method="POST" action="{% url 'approve_board_production' record.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-success shadow-sm" onclick="return confirm('Are you sure you want to Approve {{ record.cl_code }}?');" title="Approve">
+                                            <i class="bi bi-check-circle"> Approve</i>
+                                        </button>
+                                    </form>
+
+                                    <!-- Edit Button (Triggers Modal) -->
+                                    <button class="btn btn-sm btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#editBoardModal{{ record.id }}" title="Edit">
+                                        <i class="bi bi-pencil-square"> Edit</i>
+                                    </button>
+
+                                    <!-- Delete Button -->
+                                    <form method="POST" action="{% url 'delete_board_production' record.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger shadow-sm" onclick="return confirm('Are you sure you want to DELETE {{ record.cl_code }}? This cannot be undone.');" title="Delete">
+                                            <i class="bi bi-trash"> Delete</i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- ============================================== -->
+                        <!-- EDIT MODAL FOR EACH RECORD -->
+                        <!-- ============================================== -->
+                        <div class="modal fade" id="editBoardModal{{ record.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-lg">
+                                <div class="modal-content border-0 shadow-lg rounded-4">
+                                    <div class="modal-header bg-primary text-white border-bottom-0 rounded-top-4">
+                                        <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Edit Entry</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    
+                                    <form method="POST" action="{% url 'edit_board_production' record.id %}" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        <div class="modal-body p-4 row text-start">
+                                            
+                                            <!-- Code (cl_code) -->
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label fw-bold small text-secondary">Code (Auto Generated)</label>
+                                                <input type="text" name="cl_code" class="form-control border-primary fw-bold text-dark" value="{{ record.cl_code }}" required>
+                                            </div>
+
+                                            <!-- Status (cl_status) -->
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label fw-bold small text-secondary">Status</label>
+                                                <select name="cl_status" class="form-select border-primary">
+                                                    <option value="SCUBE" {% if record.cl_status == 'SCUBE' %}selected{% endif %}>SCUBE</option>
+                                                    <option value="THIRUVALLA" {% if record.cl_status == 'THIRUVALLA' %}selected{% endif %}>THIRUVALLA</option>
+                                                    <option value="SALE" {% if record.cl_status == 'SALE' %}selected{% endif %}>SALE</option>
+                                                    <option value="S-CUBE-DT" {% if record.cl_status == 'S-CUBE-DT' %}selected{% endif %}>S-CUBE-DT</option>
+                                                    <option value="ORDER" {% if record.cl_status == 'ORDER' %}selected{% endif %}>ORDER</option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Date -->
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label fw-bold small text-secondary">Entry Date</label>
+                                                <input type="date" name="cl_pr_date" class="form-control border-primary" value="{{ record.cl_pr_date|date:'Y-m-d' }}" required>
+                                            </div>
+
+                                            <!-- Category -->
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label fw-bold small text-secondary">Category</label>
+                                                <select name="cl_Catogory" class="form-select border-primary">
+                                                    <option value="">Select...</option>
+                                                    {% for code, name in categories %}
+                                                        <option value="{{ code }}" {% if record.cl_Catogory == code %}selected{% endif %}>{{ name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                            <!-- Image Upload -->
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label fw-bold small text-secondary">Update Image</label>
+                                                <input type="file" name="cl_image" class="form-control border-primary" accept="image/*">
+                                                {% if record.cl_image %}
+                                                    <small class="text-success"><i class="bi bi-check-circle"></i> Has Image</small>
+                                                {% endif %}
+                                            </div>
+
+                                            <!-- Name -->
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label fw-bold small text-secondary">Product Name</label>
+                                                <input type="text" name="cl_name" class="form-control border-primary" value="{{ record.cl_name }}" required>
+                                            </div>
+
+                                            <!-- Size -->
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label fw-bold small text-secondary">Size</label>
+                                                <input type="text" name="cl_size" class="form-control border-primary" value="{{ record.cl_size|default:'' }}">
+                                            </div>
+
+                                            <!-- Color -->
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label fw-bold small text-secondary">Color</label>
+                                                <select name="cl_color" class="form-select border-primary">
+                                                    <option value="">Select...</option>
+                                                    {% for c in colors %}
+                                                        <option value="{{ c.color }}" {% if record.cl_color == c.color %}selected{% endif %}>{{ c.color }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                            <!-- Material -->
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label fw-bold small text-secondary">Material</label>
+                                                <select name="cl_material" class="form-select border-primary">
+                                                    <option value="">Select...</option>
+                                                    {% for m in materials %}
+                                                        <option value="{{ m.material }}" {% if record.cl_material == m.material %}selected{% endif %}>{{ m.material }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                            <!-- Wage -->
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label fw-bold small text-secondary">Wage (₹)</label>
+                                                <input type="number" step="0.01" name="cl_wage" class="form-control border-primary text-danger fw-bold" value="{{ record.cl_wage }}">
+                                            </div>
+
+                                            <!-- Prize -->
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label fw-bold small text-secondary">Selling Prize (₹)</label>
+                                                <input type="number" step="0.01" name="cl_prize" class="form-control border-primary text-success fw-bold" value="{{ record.cl_prize }}">
+                                            </div>
+
+                                        </div>
+                                        <div class="modal-footer bg-light border-top-0 rounded-bottom-4">
+                                            <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-primary fw-bold px-4">Update Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- END EDIT MODAL -->
+
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                No pending board production entries found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -16,6 +16,20 @@ urlpatterns = [
     path('delete-production/<int:record_id>/', views.delete_production, name='delete_production'),
     path('edit-production/<int:record_id>/', views.edit_production, name='edit_production'),
 
+    # Product Master URLs
+    path('product-master/', views.product_master, name='product_master'),
+    path('edit-product/<int:item_id>/', views.edit_product, name='edit_product'),
+    path('board-production-entry/', views.board_production_entry, name='board_production_entry'),
+    path('ajax/add-product/', views.ajax_add_product, name='ajax_add_product'),
+    path('board-production-summary/', views.board_production_summary, name='board_production_summary'),
+    path('delete-board-production/<int:record_id>/', views.delete_board_production, name='delete_board_production'),
+    path('edit-board-production/<int:record_id>/', views.edit_board_production, name='edit_board_production'),
+    path('approve-board-production/<int:record_id>/', views.approve_board_production, name='approve_board_production'),
+    path('reports/wage-paid-report/', views.wage_paid_report, name='wage_report_current'), # current month automatically
+    path('reports/wage-paid-report/<int:year>/<int:month>/', views.wage_paid_report, name='wage_report'), # specific month navigation poakumbol
+    path('edit-payment/<int:payment_id>/', views.edit_payment, name='edit_payment'),
+    path('delete-payment/<int:payment_id>/', views.delete_payment, name='delete_payment'),
+
     path('create/',views.create,name='create'),
     path('reports/',views.reports,name='reports'),   
     path('list/',views.list,name='list'),

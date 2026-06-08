@@ -1,0 +1,265 @@
+{% extends 'blank_layout.html' %}
+{% block content %}
+
+<body class="bg-light">
+
+    <div class="container mt-4 mb-5">
+        
+        <!-- HEADER & NAVBAR -->
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+            <h2 class="text-primary m-0"><i class="bi bi-box-seam-fill me-2"></i>Product Master Data</h2>
+            <div>
+                <!-- നിങ്ങൾ ആവശ്യപ്പെട്ട Navbar ലിങ്കുകൾ -->
+                 <a href="{% url 'wage_report_current' %}" class="btn btn-outline-info btn-sm fw-bold me-2 shadow-sm"><i class="bi bi-gear-fill me-1"></i> Monthly Report</a>
+                 <a href="{% url 'board_production_summary' %}" class="btn btn-outline-info btn-sm fw-bold me-2 shadow-sm"><i class="bi bi-gear-fill me-1"></i> Production Summary</a>
+                <a href="{% url 'board_production_entry' %}" class="btn btn-outline-info btn-sm fw-bold me-2 shadow-sm"><i class="bi bi-gear-fill me-1"></i> Production entry</a>
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm shadow-sm"><i class="bi bi-house-door me-1"></i>Back to Home</a>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- LEFT COLUMN (COLOR & MATERIAL FORMS) -->
+            <div class="col-md-4">
+                
+                <!-- COLOR FORM -->
+                <div class="card shadow-sm border-warning rounded-4 mb-4">
+                    <div class="card-header bg-warning text-dark rounded-top-4 fw-bold">
+                        <i class="bi bi-palette me-2"></i>1. Add Color
+                    </div>
+                    <div class="card-body p-3">
+                        <form method="POST" action="{% url 'product_master' %}">
+                            {% csrf_token %}
+                            <div class="input-group mb-2">
+                                <input type="text" name="color" class="form-control border-warning" placeholder="Eg: Teak, Walnut" required>
+                                <button type="submit" name="add_color" class="btn btn-warning fw-bold"><i class="bi bi-plus-lg"></i> Add</button>
+                            </div>
+                            <!-- Added Colors List Preview (Optional) -->
+                            <div class="d-flex flex-wrap gap-1 mt-2">
+                                {% for c in colors %}
+                                    <span class="badge bg-light text-dark border">{{ c.color }}</span>
+                                {% endfor %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- MATERIAL FORM -->
+                <div class="card shadow-sm border-info rounded-4">
+                    <div class="card-header bg-info text-white rounded-top-4 fw-bold">
+                        <i class="bi bi-layers me-2"></i>2. Add Material
+                    </div>
+                    <div class="card-body p-3">
+                        <form method="POST" action="{% url 'product_master' %}">
+                            {% csrf_token %}
+                            <div class="input-group mb-2">
+                                <input type="text" name="material" class="form-control border-info" placeholder="Eg: MDF, Plywood" required>
+                                <button type="submit" name="add_material" class="btn btn-info text-white fw-bold"><i class="bi bi-plus-lg"></i> Add</button>
+                            </div>
+                            <div class="d-flex flex-wrap gap-1 mt-2">
+                                {% for m in materials %}
+                                    <span class="badge bg-light text-dark border">{{ m.material }}</span>
+                                {% endfor %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN (PRODUCT ADD FORM) -->
+            <div class="col-md-8">
+                <div class="card shadow-sm border-success rounded-4 h-100">
+                    <div class="card-header bg-success text-white rounded-top-4 fw-bold">
+                        <i class="bi bi-cart-plus me-2"></i>3. Add New Product
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST" action="{% url 'product_master' %}">
+                            {% csrf_token %}
+                            <div class="row">
+                                <!-- CATEGORY -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold text-secondary">Category</label>
+                                    <select name="pb_category" class="form-select border-success" required>
+                                        <option value="" disabled selected>Select Category...</option>
+                                        {% for code, name in categories %}
+                                            <option value="{{ code }}">{{ name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <!-- NAME -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold text-secondary">Product Name</label>
+                                    <input type="text" name="pb_name" class="form-control border-success" placeholder="Eg: 3 Door Wardrobe" required>
+                                </div>
+                                <!-- SIZE -->
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold text-secondary">Size</label>
+                                    <input type="text" name="pb_size" class="form-control border-success" placeholder="Eg: 6x4 Ft">
+                                </div>
+                                <!-- MATERIAL SELECTION -->
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold text-secondary">Material</label>
+                                    <select name="pb_material" class="form-select border-success">
+                                        <option value="">Choose...</option>
+                                        {% for m in materials %}
+                                            <option value="{{ m.material }}">{{ m.material }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <!-- WAGE -->
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold text-secondary">Wage (₹)</label>
+                                    <input type="number" step="0.01" name="pb_wage" class="form-control border-success" placeholder="0.00">
+                                </div>
+                                <!-- PRIZE -->
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold text-secondary">Selling Prize (₹)</label>
+                                    <input type="number" step="0.01" name="pb_prize" class="form-control border-success" placeholder="0.00" required>
+                                </div>
+                                <!-- DESCRIPTION -->
+                                <div class="col-md-8 mb-3">
+                                    <label class="form-label fw-bold text-secondary">Description</label>
+                                    <input type="text" name="pb_description" class="form-control border-success" placeholder="Short details...">
+                                </div>
+                            </div>
+                            <button type="submit" name="add_product" class="btn btn-success fw-bold w-100 py-2">
+                                <i class="bi bi-save me-1"></i> Save Product
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABLE SECTION -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card shadow-sm border-secondary rounded-4">
+                    <div class="card-header bg-secondary text-white rounded-top-4 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-table me-2"></i>Product Database</h5>
+                        <span class="badge bg-light text-dark rounded-pill">Total: {{ products|length }}</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped align-middle mb-0">
+                                <thead class="table-dark text-center border-bottom border-secondary">
+                                    <tr>
+                                        <th class="py-3">#</th>
+                                        <th class="py-3 text-start">Category</th>
+                                        <th class="py-3 text-start">Product Name</th>
+                                        <th class="py-3">Size</th>
+                                        <th class="py-3">Material</th>
+                                        <th class="py-3 text-end">Wage (₹)</th>
+                                        <th class="py-3 text-end">Prize (₹)</th>
+                                        <th class="py-3 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in products %}
+                                    <tr class="text-center">
+                                        <td class="text-muted fw-bold">{{ forloop.counter }}</td>
+                                        <td class="text-start"><span class="badge bg-primary rounded-pill px-3">{{ item.pb_category }}</span></td>
+                                        <td class="text-start fw-bold text-dark">{{ item.pb_name }}</td>
+                                        <td>{{ item.pb_size|default:"-" }}</td>
+                                        <td>{{ item.pb_material|default:"-" }}</td>
+                                        <td class="text-end fw-bold text-success fs-6">₹ {{ item.pb_wage }}</td>
+                                        <td class="text-end fw-bold text-success fs-6">₹ {{ item.pb_prize }}</td>
+                                        
+                                        <!-- EDIT BUTTON -->
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#editProductModal{{ item.id }}">
+                                                <i class="bi bi-pencil-square"></i> Edit
+                                            </button>
+
+                                            <!-- FULL EDIT MODAL -->
+                                            <div class="modal fade text-start" id="editProductModal{{ item.id }}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered modal-lg">
+                                                    <div class="modal-content border-0 shadow">
+                                                        <div class="modal-header bg-primary text-white border-bottom-0">
+                                                            <h6 class="modal-title fw-bold"><i class="bi bi-pencil-square me-1"></i>Edit Product: {{ item.pb_name }}</h6>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <form method="POST" action="{% url 'edit_product' item.id %}">
+                                                            {% csrf_token %}
+                                                            <div class="modal-body p-4 row">
+                                                                
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label class="form-label fw-bold small text-secondary">Category</label>
+                                                                    <select name="pb_category" class="form-select border-primary" required>
+                                                                        {% for code, name in categories %}
+                                                                            <option value="{{ code }}" {% if item.pb_category == code %}selected{% endif %}>{{ name }}</option>
+                                                                        {% endfor %}
+                                                                    </select>
+                                                                </div>
+
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label class="form-label fw-bold small text-secondary">Product Name</label>
+                                                                    <input type="text" name="pb_name" class="form-control border-primary" value="{{ item.pb_name }}" required>
+                                                                </div>
+
+                                                                <div class="col-md-4 mb-3">
+                                                                    <label class="form-label fw-bold small text-secondary">Size</label>
+                                                                    <input type="text" name="pb_size" class="form-control border-primary" value="{{ item.pb_size|default:'' }}">
+                                                                </div>
+
+                                                                <div class="col-md-4 mb-3">
+                                                                    <label class="form-label fw-bold small text-secondary">Material</label>
+                                                                    <select name="pb_material" class="form-select border-primary">
+                                                                        <option value="">Choose...</option>
+                                                                        {% for m in materials %}
+                                                                            <option value="{{ m.material }}" {% if item.pb_material == m.material %}selected{% endif %}>{{ m.material }}</option>
+                                                                        {% endfor %}
+                                                                    </select>
+                                                                </div>
+
+                                                                <div class="col-md-4 mb-3">
+                                                                    <label class="form-label fw-bold small text-secondary">Wage (₹)</label>
+                                                                    <input type="number" step="0.01" name="pb_wage" class="form-control border-primary" value="{{ item.pb_wage }}">
+                                                                </div>
+
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label class="form-label fw-bold small text-secondary">Selling Prize (₹)</label>
+                                                                    <div class="input-group">
+                                                                        <span class="input-group-text bg-light text-primary fw-bold">₹</span>
+                                                                        <input type="number" step="0.01" name="pb_prize" class="form-control border-primary text-primary fw-bold" value="{{ item.pb_prize }}" required>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label class="form-label fw-bold small text-secondary">Description</label>
+                                                                    <input type="text" name="pb_description" class="form-control border-primary" value="{{ item.pb_description|default:'' }}">
+                                                                </div>
+
+                                                            </div>
+                                                            <div class="modal-footer border-top-0 bg-light">
+                                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-primary btn-sm px-4 fw-bold">Update Data</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- END FULL EDIT MODAL -->
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-5">
+                                            <i class="bi bi-box fs-1 text-muted d-block mb-2"></i>
+                                            <h6 class="text-secondary fw-bold">No Products Added Yet</h6>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+{% endblock %}
