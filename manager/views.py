@@ -673,7 +673,6 @@ def approve_board_production(request, record_id):
             pr_date=record.cl_pr_date,
             status='SCUBE', 
             image=record.cl_image,
-            new_pr='NEW'
         )
         record.is_approved = True
         record.save()
