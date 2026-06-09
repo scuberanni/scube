@@ -537,6 +537,10 @@ def board_production_entry(request):
             custom_materials = request.POST.getlist('custom_materials[]')
             custom_wages = request.POST.getlist('custom_wages[]')
             custom_prizes = request.POST.getlist('custom_prizes[]')
+            
+            # പുതിയതായി ചേർത്ത Quantity Array
+            quantities = request.POST.getlist('quantities[]') 
+            
             images = request.FILES.getlist('product_images[]')
 
             image_index = 0 
@@ -555,6 +559,14 @@ def board_production_entry(request):
                         color_name = color_obj.color
                     except BoardColor.DoesNotExist:
                         pass
+                
+                # HTML ൽ നിന്നും Quantity എടുക്കുന്നു, ഇല്ലെങ്കിൽ 1 എന്ന് എടുക്കുന്നു
+                try:
+                    qty = int(quantities[i])
+                    if qty < 1: 
+                        qty = 1
+                except (IndexError, ValueError):
+                    qty = 1
 
                 img = None
                 if len(images) > image_index:
@@ -590,19 +602,25 @@ def board_production_entry(request):
                         status = "SCUBE"
                     except ProductItem.DoesNotExist:
                         continue
-
-                BoardProductionRecord.objects.create(
-                    cl_Catogory=cat,
-                    cl_name=name,
-                    cl_size=size,
-                    cl_prize=prize,
-                    cl_wage=wage, 
-                    cl_material=material,
-                    cl_color=color_name,
-                    cl_pr_date=entry_date,
-                    cl_status=status,
-                    cl_image=img
-                )
+                
+                # കൊടുത്ത നമ്പറിന് (QTY) അനുസരിച്ച് ലൂപ്പ് ചെയ്ത് സേവ് ചെയ്യുന്നു
+                for j in range(qty):
+                    # ഒരു ഇമേജ് തന്നെ പല വട്ടം സേവ് ആകുമ്പോൾ എറർ വരാതിരിക്കാൻ
+                    if img:
+                        img.seek(0)
+                        
+                    BoardProductionRecord.objects.create(
+                        cl_Catogory=cat,
+                        cl_name=name,
+                        cl_size=size,
+                        cl_prize=prize,
+                        cl_wage=wage, 
+                        cl_material=material,
+                        cl_color=color_name,
+                        cl_pr_date=entry_date,
+                        cl_status=status,
+                        cl_image=img
+                    )
         except Exception as e:
             print(f"Error saving data: {e}") 
             
@@ -677,6 +695,34 @@ def approve_board_production(request, record_id):
         record.is_approved = True
         record.save()
         
+    return redirect('board_production_summary')
+
+def bulk_approve_board_production(request):
+    if request.method == 'POST':
+        # ചെക്ക് ചെയ്ത എല്ലാ ഐഡികളും എടുക്കുന്നു
+        record_ids = request.POST.getlist('record_ids')
+        
+        if record_ids:
+            # ഐഡികൾക്ക് മാച്ച് ആകുന്ന അപ്രൂവ് ആവാത്ത എല്ലാ റെക്കോർഡുകളും എടുക്കുന്നു
+            records = BoardProductionRecord.objects.filter(id__in=record_ids, is_approved=False)
+            
+            for record in records:
+                # മാസ്റ്റർ ടേബിളിലേക്ക് സേവ് ചെയ്യുന്നു
+                Scube_ss.objects.create(
+                    code=record.cl_code,
+                    Catogory=record.cl_Catogory,
+                    name=record.cl_name,
+                    size=record.cl_size,
+                    prize=record.cl_prize,
+                    material=record.cl_material,
+                    color=record.cl_color,
+                    pr_date=record.cl_pr_date,
+                    status='SCUBE', 
+                    image=record.cl_image,
+                )
+                record.is_approved = True
+                record.save()
+                
     return redirect('board_production_summary')
 
 def edit_board_production(request, record_id):

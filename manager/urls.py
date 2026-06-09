@@ -29,6 +29,7 @@ urlpatterns = [
     path('reports/wage-paid-report/<int:year>/<int:month>/', views.wage_paid_report, name='wage_report'), # specific month navigation poakumbol
     path('edit-payment/<int:payment_id>/', views.edit_payment, name='edit_payment'),
     path('delete-payment/<int:payment_id>/', views.delete_payment, name='delete_payment'),
+    path('bulk-approve-board-production/', views.bulk_approve_board_production, name='bulk_approve_board_production'),
 
     path('create/',views.create,name='create'),
     path('reports/',views.reports,name='reports'),   
