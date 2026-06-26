@@ -5,6 +5,8 @@ from django.utils.dateparse import parse_date
 from django.contrib import messages
 from django.db.models import Sum, Q
 from django.http import JsonResponse
+import json
+
 
 from .forms import PrForm, OrderForm, PBPaidForm,SofaPaidForm
 from .models import (
@@ -28,24 +30,54 @@ def image_gallery(request, category):
         context = {
             'grouped_images': {
                 cat: {
+                    # ഇവിടെ ഓർഡർ sort_order വെച്ചാക്കി മാറ്റി
                     
-                    'unshow': base_query.filter(Catogory=cat, gallery_status='UNSHOW')
+                    'unshow': base_query.filter(Catogory=cat, gallery_status='UNSHOW').order_by('sort_order', '-pr_date')
                 } for cat in [c[0] for c in Catogory_choice]
             },
             'is_all': True,
             'page_title': "ALL PRODUCTS GALLERY"
         }
     else:
-        # സിംഗിൾ കാറ്റഗറി വ്യൂ (പഴയതുപോലെ)
         cat_images = base_query.filter(Catogory=category)
         context = {
-            'pending_images': cat_images.filter(gallery_status='PENDING').order_by('-pr_date'),
-            'show_images': cat_images.filter(gallery_status='SHOW').order_by('-pr_date'),
+            # ഇവിടെയും ഓർഡർ sort_order വെച്ചാക്കി
+            'pending_images': cat_images.filter(gallery_status='PENDING').order_by('sort_order', '-pr_date'),
+            'show_images': cat_images.filter(gallery_status='SHOW').order_by('sort_order', '-pr_date'),
             'page_title': category.replace('-', ' '),
             'current_category': category,
             'is_all': False
         }
     return render(request, 'image_gallery.html', context)
+
+# ==========================================
+# BULK GALLERY STATUS UPDATE
+# ==========================================
+def bulk_update_gallery_status(request):
+    if request.method == 'POST':
+        action = request.POST.get('action') # 'SHOW' or 'UNSHOW'
+        item_ids = request.POST.getlist('item_ids')
+        
+        if action in ['SHOW', 'UNSHOW'] and item_ids:
+            Scube_ss.objects.filter(id__in=item_ids).update(gallery_status=action)
+            
+    return redirect(request.META.get('HTTP_REFERER', 'image_categories'))
+
+# ഡ്രാഗ് ചെയ്ത പൊസിഷൻ ഡാറ്റാബേസിൽ സേവ് ചെയ്യാനുള്ള AJAX ഫംഗ്ഷൻ
+def update_sort_order(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            order_ids = data.get('order', [])
+            
+            # ലഭിച്ച പുതിയ പൊസിഷനുകൾ ഡാറ്റാബേസിൽ അപ്ഡേറ്റ് ചെയ്യുന്നു
+            for index, item_id in enumerate(order_ids):
+                Scube_ss.objects.filter(id=item_id).update(sort_order=index)
+                
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+    return JsonResponse({'status': 'invalid_method'})
 
 # ഗാലറിയിൽ നിന്ന് നേരിട്ട് സ്റ്റാറ്റസ് മാറ്റാനുള്ള ഫംഗ്ഷൻ
 def change_gallery_status(request, item_id, status):

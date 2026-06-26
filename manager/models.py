@@ -46,6 +46,7 @@ class Scube_ss(models.Model):
         ('UNSHOW', 'UNSHOW'),
     ]
     gallery_status = models.CharField(max_length=20, choices=GALLERY_STATUS_CHOICES, default='PENDING')
+    sort_order = models.IntegerField(default=0)
 
     # models.py ലെ class Scube_ss ഉള്ളിൽ ചേർക്കേണ്ടത്:
     @property

@@ -2,13 +2,32 @@
 
 {% block content %}
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
 <style>
-    .gallery-item { overflow: hidden; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.3s ease; background-color: #fff; margin-bottom: 20px;}
-    .gallery-item:hover { transform: scale(1.03); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-    .gallery-img { width: 100%; height: 250px; object-fit: contain; background-color: #ffffff; border-bottom: 3px solid #0d6efd; cursor: pointer; }
+    .selected-card { border: 4px solid #ffc107 !important; transform: scale(0.95); opacity: 0.8; }
+    .gallery-item { position: relative; overflow: hidden; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.2s ease; background-color: #fff; margin-bottom: 20px;}
+    .gallery-item:hover { box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+    .gallery-img { width: 100%; height: 250px; object-fit: contain; background-color: #ffffff; border-bottom: 3px solid #0d6efd; }
     .gallery-info { padding: 10px; text-align: center; }
     .viewer-btn { width: 50px; height: 50px; opacity: 0.6; transition: opacity 0.3s ease; z-index: 1055; }
     .viewer-btn:hover { opacity: 1; }
+    
+    @media (min-width: 992px) {
+        .gallery-item { cursor: grab; }
+        .gallery-item:active { cursor: grabbing; }
+    }
+    @media (max-width: 991px) {
+        .gallery-item { cursor: pointer; }
+    }
+
+    /* Bulk Checkbox Styling */
+    .bulk-check {
+        top: 0; left: 0; 
+        width: 1.5rem; height: 1.5rem; 
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
 </style>
 
 <body class="bg-light">
@@ -24,6 +43,19 @@
             <div style="width: 40px;"></div> 
         </div>
 
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+            <p class="text-muted small fw-bold m-0 d-none d-lg-block">
+                <i class="bi bi-info-circle"></i> Click multiple images to select them, then drag to reorder. Check boxes to bulk Hide/Show.
+            </p>
+            
+            <div class="form-check ms-auto bg-white p-2 px-3 rounded-pill border shadow-sm">
+                <input class="form-check-input border-dark" type="checkbox" id="selectAllCheck" onclick="toggleSelectAll()" style="cursor: pointer; width: 1.2rem; height: 1.2rem;">
+                <label class="form-check-label fw-bold text-dark ms-2" for="selectAllCheck" style="cursor: pointer; padding-top: 2px;">
+                    Select All Images
+                </label>
+            </div>
+        </div>
+
         {% if is_all %}
             {% for cat_name, data in grouped_images.items %}
                 <div class="mb-5">
@@ -31,10 +63,12 @@
                     
                     {% if data.pending %}
                         <h6 class="text-warning fw-bold mt-3">PENDING</h6>
-                        <div class="row g-3 mb-3">
+                        <div class="row g-3 mb-3 sortable-grid">
                             {% for item in data.pending %}
-                            <div class="col-12 col-md-4 col-lg-3">
+                            <div class="col-12 col-md-4 col-lg-3 gallery-item-wrapper" data-id="{{ item.id }}">
                                 <div class="gallery-item">
+                                    <input type="checkbox" class="form-check-input position-absolute m-2 z-3 bulk-check" value="{{ item.id }}" onclick="event.stopPropagation(); updateBulkBar();">
+                                    <span class="badge bg-dark position-absolute top-0 end-0 m-2 z-1 shadow-sm sl-badge">#{{ forloop.counter }}</span>
                                     <img src="{{ item.image.url }}" class="gallery-img" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
                                     <div class="gallery-info bg-light">
                                         <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
@@ -49,10 +83,12 @@
 
                     {% if data.show %}
                         <h6 class="text-success fw-bold mt-3">SHOW</h6>
-                        <div class="row g-3 mb-3">
+                        <div class="row g-3 mb-3 sortable-grid">
                             {% for item in data.show %}
-                            <div class="col-12 col-md-4 col-lg-3">
+                            <div class="col-12 col-md-4 col-lg-3 gallery-item-wrapper" data-id="{{ item.id }}">
                                 <div class="gallery-item">
+                                    <input type="checkbox" class="form-check-input position-absolute m-2 z-3 bulk-check" value="{{ item.id }}" onclick="event.stopPropagation(); updateBulkBar();">
+                                    <span class="badge bg-dark position-absolute top-0 end-0 m-2 z-1 shadow-sm sl-badge">#{{ forloop.counter }}</span>
                                     <img src="{{ item.image.url }}" class="gallery-img border-success" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
                                     <div class="gallery-info bg-white">
                                         <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
@@ -67,10 +103,12 @@
                     
                     {% if data.unshow %}
                         <h6 class="text-danger fw-bold mt-3">UNSHOW (HIDDEN)</h6>
-                        <div class="row g-3 mb-3">
+                        <div class="row g-3 mb-3 sortable-grid">
                             {% for item in data.unshow %}
-                            <div class="col-12 col-md-4 col-lg-3">
+                            <div class="col-12 col-md-4 col-lg-3 gallery-item-wrapper" data-id="{{ item.id }}">
                                 <div class="gallery-item">
+                                    <input type="checkbox" class="form-check-input position-absolute m-2 z-3 bulk-check" value="{{ item.id }}" onclick="event.stopPropagation(); updateBulkBar();">
+                                    <span class="badge bg-dark position-absolute top-0 end-0 m-2 z-1 shadow-sm sl-badge">#{{ forloop.counter }}</span>
                                     <img src="{{ item.image.url }}" class="gallery-img border-danger" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
                                     <div class="gallery-info bg-white">
                                         <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
@@ -88,16 +126,18 @@
         {% else %}
             {% if pending_images %}
                 <h4 class="text-warning fw-bold mt-4">PENDING</h4>
-                <div class="row g-3 mb-4">
+                <div class="row g-3 mb-4 sortable-grid">
                     {% for item in pending_images %}
-                    <div class="col-12 col-md-4 col-lg-3">
+                    <div class="col-12 col-md-4 col-lg-3 gallery-item-wrapper" data-id="{{ item.id }}">
                         <div class="gallery-item">
+                            <input type="checkbox" class="form-check-input position-absolute m-2 z-3 bulk-check" value="{{ item.id }}" onclick="event.stopPropagation(); updateBulkBar();">
+                            <span class="badge bg-dark position-absolute top-0 end-0 m-2 z-1 shadow-sm sl-badge">#{{ forloop.counter }}</span>
                             <img src="{{ item.image.url }}" class="gallery-img" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
                             <div class="gallery-info bg-light border-top">
                                 <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
                                 <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
                                 <div class="mt-2 d-flex justify-content-center gap-2">
-                                    <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold">SHOW</a>
+                                    <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold">Approve</a>
                                     <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-danger fw-bold">Hide</a>
                                 </div>
                             </div>
@@ -108,10 +148,12 @@
             {% endif %}
 
             <h4 class="text-success fw-bold mt-4">SHOW</h4>
-            <div class="row g-4">
+            <div class="row g-4 sortable-grid">
                 {% for item in show_images %}
-                <div class="col-12 col-md-4 col-lg-3">
+                <div class="col-12 col-md-4 col-lg-3 gallery-item-wrapper" data-id="{{ item.id }}">
                     <div class="gallery-item">
+                        <input type="checkbox" class="form-check-input position-absolute m-2 z-3 bulk-check" value="{{ item.id }}" onclick="event.stopPropagation(); updateBulkBar();">
+                        <span class="badge bg-dark position-absolute top-0 end-0 m-2 z-1 shadow-sm sl-badge">#{{ forloop.counter }}</span>
                         <img src="{{ item.image.url }}" class="gallery-img border-success" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
                         <div class="gallery-info bg-white">
                             <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
@@ -125,10 +167,12 @@
 
             {% if unshow_images %}
                 <h4 class="text-danger fw-bold mt-4">UNSHOW (HIDDEN)</h4>
-                <div class="row g-3 mb-4">
+                <div class="row g-3 mb-4 sortable-grid">
                     {% for item in unshow_images %}
-                    <div class="col-12 col-md-4 col-lg-3">
+                    <div class="col-12 col-md-4 col-lg-3 gallery-item-wrapper" data-id="{{ item.id }}">
                         <div class="gallery-item">
+                            <input type="checkbox" class="form-check-input position-absolute m-2 z-3 bulk-check" value="{{ item.id }}" onclick="event.stopPropagation(); updateBulkBar();">
+                            <span class="badge bg-dark position-absolute top-0 end-0 m-2 z-1 shadow-sm sl-badge">#{{ forloop.counter }}</span>
                             <img src="{{ item.image.url }}" class="gallery-img border-danger" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
                             <div class="gallery-info bg-white">
                                 <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
@@ -141,6 +185,16 @@
                 </div>
             {% endif %}
         {% endif %}
+    </div>
+
+    <div id="bulkActionBar" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 p-3 bg-dark border border-secondary rounded-pill shadow-lg d-none d-flex align-items-center gap-3" style="z-index: 1060;">
+        <span class="text-white fw-bold"><span id="selCount" class="text-warning fs-5">0</span> Selected</span>
+        <form id="bulkForm" method="POST" action="{% url 'bulk_update_gallery_status' %}" class="m-0 p-0">
+            {% csrf_token %}
+            <input type="hidden" name="action" id="bulkActionVal" value="">
+            <button type="button" class="btn btn-success btn-sm rounded-pill fw-bold px-3 shadow" onclick="submitBulk('SHOW')"><i class="bi bi-eye me-1"></i> Show</button>
+            <button type="button" class="btn btn-danger btn-sm rounded-pill fw-bold px-3 shadow" onclick="submitBulk('UNSHOW')"><i class="bi bi-eye-slash me-1"></i> Hide</button>
+        </form>
     </div>
 
     <div class="modal fade" id="imageViewerModal" tabindex="-1" aria-hidden="true">
@@ -160,6 +214,93 @@
     </div>
 
     <script>
+        // --- 1. BULK SELECT LOGIC ---
+        function toggleSelectAll() {
+            let isChecked = document.getElementById('selectAllCheck').checked;
+            let checkboxes = document.querySelectorAll('.bulk-check');
+            
+            checkboxes.forEach(chk => {
+                chk.checked = isChecked;
+            });
+            updateBulkBar();
+        }
+
+        function updateBulkBar() {
+            let allChecks = document.querySelectorAll('.bulk-check');
+            let checked = document.querySelectorAll('.bulk-check:checked');
+            let bar = document.getElementById('bulkActionBar');
+            let selectAllBox = document.getElementById('selectAllCheck');
+            
+            document.getElementById('selCount').innerText = checked.length;
+            
+            if(checked.length > 0) {
+                bar.classList.remove('d-none');
+            } else {
+                bar.classList.add('d-none');
+            }
+
+            // Update Select All Checkbox state if user manually checks/unchecks items
+            if(selectAllBox && allChecks.length > 0) {
+                selectAllBox.checked = (checked.length === allChecks.length);
+            }
+        }
+
+        function submitBulk(action) {
+            let checked = document.querySelectorAll('.bulk-check:checked');
+            if(checked.length === 0) return;
+            
+            let form = document.getElementById('bulkForm');
+            document.getElementById('bulkActionVal').value = action;
+            
+            checked.forEach(chk => {
+                let input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'item_ids';
+                input.value = chk.value;
+                form.appendChild(input);
+            });
+            form.submit();
+        }
+
+        // --- 2. DRAG AND DROP LOGIC ---
+        try { Sortable.mount(new MultiDrag()); } catch(e) { console.log(e); }
+
+        if (window.innerWidth >= 992) {
+            document.querySelectorAll('.sortable-grid').forEach(grid => {
+                new Sortable(grid, {
+                    multiDrag: true,             
+                    selectedClass: 'selected-card', 
+                    animation: 150,              
+                    fallbackTolerance: 3,        
+                    
+                    onEnd: function (evt) {
+                        let newOrder = [];
+                        grid.querySelectorAll('.gallery-item-wrapper').forEach(item => {
+                            newOrder.push(item.getAttribute('data-id'));
+                        });
+
+                        grid.querySelectorAll('.sl-badge').forEach((badge, index) => {
+                            badge.innerText = '#' + (index + 1);
+                        });
+
+                        fetch("{% url 'update_sort_order' %}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({ order: newOrder })
+                        }).then(res => res.json()).then(data => {
+                            if(data.status !== 'success') {
+                                alert('Failed to save order: ' + data.message);
+                            }
+                        });
+                    }
+                });
+            });
+        }
+
+        // --- 3. VIEWER LOGIC ---
         const galleryItems = [
             {% if is_all %}
                 {% for cat_name, data in grouped_images.items %}
@@ -176,11 +317,15 @@
 
         let currentIndex = 0;
         function openViewer(id) {
+            if(document.querySelector('.selected-card')) return; 
+            if(event.target.classList.contains('bulk-check')) return;
+
             currentIndex = galleryItems.findIndex(i => i.id === id);
             document.getElementById('viewerImage').src = galleryItems[currentIndex].url;
             document.getElementById('viewerTitle').textContent = galleryItems[currentIndex].name;
             new bootstrap.Modal(document.getElementById('imageViewerModal')).show();
         }
+        
         function changeImage(step) {
             currentIndex = (currentIndex + step + galleryItems.length) % galleryItems.length;
             document.getElementById('viewerImage').src = galleryItems[currentIndex].url;

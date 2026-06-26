@@ -1,0 +1,22 @@
+<div class="col-12 col-md-4 col-lg-3 gallery-item-wrapper" data-id="{{ item.id }}">
+    <div class="gallery-item">
+        <span class="badge bg-dark position-absolute top-0 end-0 m-2 z-1 shadow-sm sl-badge">#{{ forloop.counter }}</span>
+        
+        <img src="{{ item.image.url }}" class="gallery-img {% if status == 'SHOW' %}border-success{% elif status == 'UNSHOW' %}border-danger{% endif %}" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
+        
+        <div class="gallery-info bg-white">
+            <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
+            <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
+            <div class="mt-2">
+                {% if status == 'PENDING' %}
+                    <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold">Approve</a>
+                    <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-danger fw-bold">Hide</a>
+                {% elif status == 'SHOW' %}
+                    <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-outline-danger fw-bold">Hide</a>
+                {% elif status == 'UNSHOW' %}
+                    <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold">Show</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
