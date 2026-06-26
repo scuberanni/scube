@@ -1,0 +1,113 @@
+{% extends 'blank_layout.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    .custom-hover-card {
+        transition: all 0.3s ease-in-out;
+    }
+    .custom-hover-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 20px rgba(13, 110, 253, 0.3) !important;
+        border-color: #0dcaf0 !important;
+    }
+    
+    /* പുതിയ ഇമേജുകൾക്കുള്ള CSS (White Background & 3px White Border) */
+    .card-img-icon {
+        height: 65px;
+        width: 65px; /* വീതിയും കൃത്യമായി കൊടുത്തു */
+        object-fit: contain;
+        background-color: #ffffff; /* വെളുത്ത ബാക്ക്ഗ്രൗണ്ട് */
+        border: 3px solid #ffffff; /* 3px വെളുത്ത ബോർഡർ */
+        border-radius: 50%; /* വൃത്താകൃതിയിൽ ആക്കാൻ (വേണ്ടെങ്കിൽ ഇത് കളയാം) */
+        padding: 5px; /* ഇമേജ് ബോർഡറിൽ മുട്ടാതിരിക്കാൻ കുറച്ച് ഗ്യാപ്പ് */
+        transition: transform 0.3s ease;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* ചെറിയൊരു ഷാഡോ കൂടി കൊടുത്തു */
+    }
+    .custom-hover-card:hover .card-img-icon {
+        transform: scale(1.1);
+    }
+</style>
+
+<body class="bg-light">
+
+    <div class="container mt-5 mb-5">
+        
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h2 class="fw-bold text-primary text-uppercase">
+                    <i class="bi bi-grid-fill me-2"></i> Others Menu
+                </h2>
+            </div>
+        </div>
+
+        <div class="row justify-content-center g-4">
+            
+            <div class="col-6 col-md-4 col-lg-4">
+                <div class="card h-100 rounded-4 border bg-danger border-white border-3 px-0 py-4 custom-hover-card shadow">
+                    <a href="{% url 'create' %}" class="text-decoration-none text-center d-flex flex-column align-items-center justify-content-center h-100">
+                        <img src="{% static 'images/H1.png' %}" class="card-img-icon mb-2" alt="Add Product">
+                        <h5 class="fw-bold mt-2" style="color: aliceblue;">ADD PRODUCT</h5>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-4 col-lg-4">
+                <div class="card h-100 rounded-4 border bg-danger border-white border-3 px-0 py-4 custom-hover-card shadow">
+                    <a href="{% url 'list' %}" class="text-decoration-none text-center d-flex flex-column align-items-center justify-content-center h-100">
+                        <img src="{% static 'images/H2.png' %}" class="card-img-icon mb-2" alt="List Product">
+                        <h5 class="fw-bold mt-2" style="color: aliceblue;">LIST PRODUCT</h5>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-4 col-lg-4">
+                <div class="card h-100 rounded-4 border bg-danger border-white border-3 px-0 py-4 custom-hover-card shadow">
+                    <a href="{% url 'reports' %}" class="text-decoration-none text-center d-flex flex-column align-items-center justify-content-center h-100">
+                        <img src="{% static 'images/H9.png' %}" class="card-img-icon mb-2" alt="PR Reports">
+                        <h5 class="fw-bold mt-2" style="color: aliceblue;">PR REPORTS</h5>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-4 col-lg-4">
+                <div class="card h-100 rounded-4 border bg-danger border-white border-3 px-0 py-4 custom-hover-card shadow">
+                    <a href="{% url 'sales_reports' %}" class="text-decoration-none text-center d-flex flex-column align-items-center justify-content-center h-100">
+                        <img src="{% static 'images/H8.png' %}" class="card-img-icon mb-2" alt="Sales Report">
+                        <h5 class="fw-bold mt-2" style="color: aliceblue;">SALES REPORT</h5>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-4 col-lg-4">
+                <div class="card h-100 rounded-4 border bg-danger border-white border-3 px-0 py-4 custom-hover-card shadow">
+                    <a href="{% url 'Pr_Approvel' %}" class="text-decoration-none text-center  d-flex flex-column align-items-center justify-content-center h-100">
+                        <img  src="{% static 'images/H7.png' %}" class="card-img-icon mb-2" alt="PR Approvel">
+                        <h5 class="fw-bold mt-2" style="color: aliceblue;">PR APPROVEL</h5>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-4 col-lg-4">
+                <div class="card h-100 rounded-4 border bg-danger border-white border-3 px-0 py-4 custom-hover-card shadow">
+                    <a href="{% url 'admin' %}" class="text-decoration-none text-center d-flex flex-column align-items-center justify-content-center h-100">
+                        <img src="{% static 'images/H10.png' %}" class="card-img-icon mb-2" alt="Admin">
+                        <h5 class="fw-bold mt-2" style="color: aliceblue;">ADMIN</h5>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+        
+        <div class="row mt-5">
+            <div class="col-12 text-center no-print">
+                <a href="{% url 'home' %}" class="btn btn-outline-primary rounded-pill fw-bold px-4 shadow-sm">
+                    <i class="bi bi-arrow-left me-2"></i> Back to Home
+                </a>
+            </div>
+        </div>
+
+    </div>
+</body>
+{% endblock %}

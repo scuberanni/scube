@@ -6,6 +6,9 @@ from . import views
 urlpatterns = [
 
     path('',views.home,name='home'),
+    path('others-menu/', views.others_menu, name='others_menu'),
+    path('image-categories/', views.image_categories, name='image_categories'),
+    path('gallery/<str:category>/', views.image_gallery, name='image_gallery'),
     path('master-data/', views.master_data_page, name='master_data'),
     path('edit-material/<int:item_id>/', views.edit_material, name='edit_material'),
     path('production-entry/', views.production_entry, name='production_entry'),

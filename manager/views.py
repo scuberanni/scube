@@ -18,6 +18,30 @@ from .models import (
 def admin(request):
     return render(request, 'admin')
 
+def image_categories(request):
+    return render(request, 'image_categories.html')
+
+def image_gallery(request, category):
+    # ഇമേജ് ഇല്ലാത്തവ (Empty/Null) ഒഴിവാക്കാൻ exclude ഉപയോഗിക്കുന്നു
+    base_query = Scube_ss.objects.exclude(image='').exclude(image__isnull=True)
+
+    if category == 'ALL':
+        images = base_query.order_by('-pr_date', '-id')
+        page_title = "ALL PRODUCTS"
+    else:
+        images = base_query.filter(Catogory=category).order_by('-pr_date', '-id')
+        page_title = category.replace('-', ' ')
+
+    context = {
+        'images': images,
+        'page_title': page_title,
+        'current_category': category,
+    }
+    return render(request, 'image_gallery.html', context)
+
+def others_menu(request):
+    return render(request, 'others.html')
+
 def create(request):
     if request.method == 'POST':
         frm = PrForm(request.POST, request.FILES)

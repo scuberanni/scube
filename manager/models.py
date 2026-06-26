@@ -41,6 +41,37 @@ class Scube_ss(models.Model):
     image = models.ImageField(upload_to='images/', blank=True)
     new_pr = models.CharField(choices=new_choice, max_length=50, null=True, blank=True)
 
+    # models.py ലെ class Scube_ss ഉള്ളിൽ ചേർക്കേണ്ടത്:
+    @property
+    def encoded_prize(self):
+        if not self.prize:
+            return "SC00ST26"
+            
+        try:
+            p = int(self.prize)
+        except ValueError:
+            return "SC00ST26"
+
+        # ആദ്യത്തെ രണ്ട് അക്കം എടുക്കുന്നു (ഉദാ: 22000 ൽ നിന്ന് 22)
+        thousands = p // 1000
+        # ബാക്കി വരുന്ന നൂറുകൾ എടുക്കുന്നു (ഉദാ: 22800 ൽ നിന്ന് 800)
+        hundreds = p % 1000
+
+        # നൂറുകളെ അക്ഷരങ്ങളാക്കി മാറ്റുന്നു
+        letter_code = ""
+        if hundreds == 100: letter_code = "A"
+        elif hundreds == 200: letter_code = "B"
+        elif hundreds == 300: letter_code = "C"
+        elif hundreds == 400: letter_code = "D"
+        elif hundreds == 500: letter_code = "E"
+        elif hundreds == 600: letter_code = "EA"
+        elif hundreds == 700: letter_code = "EB"
+        elif hundreds == 800: letter_code = "EC"
+        elif hundreds == 900: letter_code = "ED"
+
+        # ഫൈനൽ കോഡ് നിർമ്മിക്കുന്നു (ഉദാ: SC + 22 + EC + ST26 = SC22ECST26)
+        return f"SC{thousands}{letter_code}ST26"
+
     def __str__(self):
         return str(self.name)
 

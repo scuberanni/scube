@@ -1,0 +1,99 @@
+{% extends 'blank_layout.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    .image-menu-card {
+        transition: all 0.3s ease-in-out;
+    }
+    .image-menu-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 20px rgba(13, 110, 253, 0.3) !important;
+        border-color: #0dcaf0 !important;
+    }
+</style>
+
+<body class="bg-light">
+
+    <div class="container mt-5 mb-5">
+        
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h2 class="fw-bold text-primary text-uppercase">
+                    <i class="bi bi-images me-2"></i> Image Categories
+                </h2>
+                <p class="text-muted small fw-bold">Select a category to view the gallery</p>
+            </div>
+        </div>
+
+        <div class="row justify-content-center g-4">
+            
+            <div class="col-6 col-lg-4">
+                <div class="card rounded-4 border bg-dark border-primary border-3 px-0 shadow h-100 image-menu-card">
+                    <a href="{% url 'image_gallery' 'CUPBOARD' %}">
+                        <img src="{% static 'images/WARDROBE2.jpg' %}" class="card-img-top" style="border-radius: 13px; height:180px; object-fit: cover;" alt="Cupboard">
+                    </a>
+                    <h5 class="text-center pt-2 pb-2 mb-0 fw-bold" style="color: aliceblue;">CUPBOARD</h5>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-4">
+                <div class="card rounded-4 border bg-dark border-primary border-3 px-0 shadow h-100 image-menu-card">
+                    <a href="{% url 'image_gallery' 'TABLE' %}">
+                        <img src="{% static 'images/TABLE.jpg' %}" class="card-img-top" style="border-radius: 13px; height:180px; object-fit: cover;" alt="Table">
+                    </a>
+                    <h5 class="text-center pt-2 pb-2 mb-0 fw-bold" style="color: aliceblue;">TABLE</h5>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-4">
+                <div class="card rounded-4 border bg-dark border-primary border-3 px-0 shadow h-100 image-menu-card">
+                    <a href="{% url 'image_gallery' 'TV-STAND' %}">
+                        <img src="{% static 'images/tv.png' %}" class="card-img-top" style="border-radius: 13px; height:180px; object-fit: cover;" alt="TV Stand">
+                    </a>
+                    <h5 class="text-center pt-2 pb-2 mb-0 fw-bold" style="color: aliceblue;">TV STAND</h5>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-4">
+                <div class="card rounded-4 border bg-dark border-primary border-3 px-0 shadow h-100 image-menu-card">
+                    <a href="{% url 'image_gallery' 'SOFA' %}">
+                        <img src="{% static 'images/page4-img6.jpg' %}" class="card-img-top" style="border-radius: 13px; height:180px; object-fit: cover;" alt="Sofa">
+                    </a>
+                    <h5 class="text-center pt-2 pb-2 mb-0 fw-bold" style="color: aliceblue;">SOFA</h5>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-4">
+                <div class="card rounded-4 border bg-dark border-primary border-3 px-0 shadow h-100 image-menu-card">
+                    <a href="{% url 'image_gallery' 'BEDROOM-SET' %}">
+                        <img src="{% static 'images/BEDROOM SET.jpeg' %}" class="card-img-top" style="border-radius: 13px; height:180px; object-fit: cover;" alt="Bedroom Set">
+                    </a>
+                    <h5 class="text-center pt-2 pb-2 mb-0 fw-bold" style="color: aliceblue;">BEDROOM SET</h5>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-4">
+                <div class="card rounded-4 border bg-dark border-primary border-3 px-0 shadow h-100 image-menu-card">
+                    <a href="{% url 'image_gallery' 'ALL' %}">
+                        <img src="{% static 'images/gallery-img8.jpg' %}" class="card-img-top" style="border-radius: 13px; height:180px; object-fit: cover;" alt="All Products">
+                    </a>
+                    <h5 class="text-center pt-2 pb-2 mb-0 fw-bold" style="color: aliceblue;">ALL PRODUCTS</h5>
+                </div>
+            </div>
+
+        </div>
+        
+        <div class="row mt-5">
+            <div class="col-12 text-center no-print">
+                <a href="{% url 'home' %}" class="btn btn-outline-dark rounded-pill fw-bold px-4 shadow-sm">
+                    <i class="bi bi-arrow-left me-2"></i> Back to Home
+                </a>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+{% endblock %}
