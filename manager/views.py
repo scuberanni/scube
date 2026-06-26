@@ -22,22 +22,40 @@ def image_categories(request):
     return render(request, 'image_categories.html')
 
 def image_gallery(request, category):
-    # ഇമേജ് ഇല്ലാത്തവ (Empty/Null) ഒഴിവാക്കാൻ exclude ഉപയോഗിക്കുന്നു
     base_query = Scube_ss.objects.exclude(image='').exclude(image__isnull=True)
 
     if category == 'ALL':
-        images = base_query.order_by('-pr_date', '-id')
-        page_title = "ALL PRODUCTS"
+        context = {
+            'grouped_images': {
+                cat: {
+                    
+                    'unshow': base_query.filter(Catogory=cat, gallery_status='UNSHOW')
+                } for cat in [c[0] for c in Catogory_choice]
+            },
+            'is_all': True,
+            'page_title': "ALL PRODUCTS GALLERY"
+        }
     else:
-        images = base_query.filter(Catogory=category).order_by('-pr_date', '-id')
-        page_title = category.replace('-', ' ')
-
-    context = {
-        'images': images,
-        'page_title': page_title,
-        'current_category': category,
-    }
+        # സിംഗിൾ കാറ്റഗറി വ്യൂ (പഴയതുപോലെ)
+        cat_images = base_query.filter(Catogory=category)
+        context = {
+            'pending_images': cat_images.filter(gallery_status='PENDING').order_by('-pr_date'),
+            'show_images': cat_images.filter(gallery_status='SHOW').order_by('-pr_date'),
+            'page_title': category.replace('-', ' '),
+            'current_category': category,
+            'is_all': False
+        }
     return render(request, 'image_gallery.html', context)
+
+# ഗാലറിയിൽ നിന്ന് നേരിട്ട് സ്റ്റാറ്റസ് മാറ്റാനുള്ള ഫംഗ്ഷൻ
+def change_gallery_status(request, item_id, status):
+    item = get_object_or_404(Scube_ss, id=item_id)
+    if status in ['SHOW', 'UNSHOW', 'PENDING']:
+        item.gallery_status = status
+        item.save()
+    # ആ പേജിലേക്ക് തന്നെ തിരികെ പോവാൻ
+    return redirect(request.META.get('HTTP_REFERER', 'image_categories'))
+
 
 def others_menu(request):
     return render(request, 'others.html')

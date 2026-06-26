@@ -40,6 +40,12 @@ class Scube_ss(models.Model):
     status = models.CharField(choices=status_choice, max_length=50, null=True)
     image = models.ImageField(upload_to='images/', blank=True)
     new_pr = models.CharField(choices=new_choice, max_length=50, null=True, blank=True)
+    GALLERY_STATUS_CHOICES = [
+        ('PENDING', 'PENDING'),
+        ('SHOW', 'SHOW'),
+        ('UNSHOW', 'UNSHOW'),
+    ]
+    gallery_status = models.CharField(max_length=20, choices=GALLERY_STATUS_CHOICES, default='PENDING')
 
     # models.py ലെ class Scube_ss ഉള്ളിൽ ചേർക്കേണ്ടത്:
     @property
@@ -52,24 +58,33 @@ class Scube_ss(models.Model):
         except ValueError:
             return "SC00ST26"
 
-        # ആദ്യത്തെ രണ്ട് അക്കം എടുക്കുന്നു (ഉദാ: 22000 ൽ നിന്ന് 22)
+        # ആദ്യത്തെ അക്കങ്ങൾ എടുക്കുന്നു (ഉദാ: 22850 ൽ നിന്ന് 22)
         thousands = p // 1000
-        # ബാക്കി വരുന്ന നൂറുകൾ എടുക്കുന്നു (ഉദാ: 22800 ൽ നിന്ന് 800)
+        # ബാക്കി വരുന്ന സംഖ്യ എടുക്കുന്നു (ഉദാ: 22850 ൽ നിന്ന് 850)
         hundreds = p % 1000
 
-        # നൂറുകളെ അക്ഷരങ്ങളാക്കി മാറ്റുന്നു
+        # സംഖ്യയുടെ റേഞ്ച് അനുസരിച്ച് അക്ഷരങ്ങൾ നൽകുന്നു (1 മുതൽ 999 വരെ)
         letter_code = ""
-        if hundreds == 100: letter_code = "A"
-        elif hundreds == 200: letter_code = "B"
-        elif hundreds == 300: letter_code = "C"
-        elif hundreds == 400: letter_code = "D"
-        elif hundreds == 500: letter_code = "E"
-        elif hundreds == 600: letter_code = "EA"
-        elif hundreds == 700: letter_code = "EB"
-        elif hundreds == 800: letter_code = "EC"
-        elif hundreds == 900: letter_code = "ED"
+        if 1 <= hundreds <= 100:
+            letter_code = "A"
+        elif 101 <= hundreds <= 200:
+            letter_code = "B"
+        elif 201 <= hundreds <= 300:
+            letter_code = "C"
+        elif 301 <= hundreds <= 400:
+            letter_code = "D"
+        elif 401 <= hundreds <= 500:
+            letter_code = "E"
+        elif 501 <= hundreds <= 600:
+            letter_code = "EA"
+        elif 601 <= hundreds <= 700:
+            letter_code = "EB"
+        elif 701 <= hundreds <= 800:
+            letter_code = "EC"
+        elif 801 <= hundreds <= 999:  # 801 മുതൽ 999 വരെ ED വരും
+            letter_code = "ED"
 
-        # ഫൈനൽ കോഡ് നിർമ്മിക്കുന്നു (ഉദാ: SC + 22 + EC + ST26 = SC22ECST26)
+        # ഫൈനൽ കോഡ് നിർമ്മിക്കുന്നു
         return f"SC{thousands}{letter_code}ST26"
 
     def __str__(self):

@@ -3,217 +3,189 @@
 {% block content %}
 
 <style>
-    .gallery-item {
-        overflow: hidden;
-        border-radius: 15px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease;
-        background-color: #fff;
-        cursor: pointer; /* കഴ്‌സർ പോയിന്റർ ആക്കാൻ */
-    }
-    .gallery-item:hover {
-        transform: scale(1.03);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    }
-    
-    .gallery-img {
-        width: 100%;
-        height: 250px;
-        object-fit: contain; 
-        background-color: #ffffff; 
-        border-bottom: 3px solid #0d6efd;
-    }
-    
-    .gallery-info {
-        padding: 10px;
-        text-align: center;
-    }
-
-    /* കസ്റ്റം വ്യൂവർ മോഡലിനുള്ള CSS */
-    .viewer-btn {
-        width: 50px;
-        height: 50px;
-        opacity: 0.6;
-        transition: opacity 0.3s ease;
-        z-index: 1055;
-    }
-    .viewer-btn:hover {
-        opacity: 1;
-    }
+    .gallery-item { overflow: hidden; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.3s ease; background-color: #fff; margin-bottom: 20px;}
+    .gallery-item:hover { transform: scale(1.03); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+    .gallery-img { width: 100%; height: 250px; object-fit: contain; background-color: #ffffff; border-bottom: 3px solid #0d6efd; cursor: pointer; }
+    .gallery-info { padding: 10px; text-align: center; }
+    .viewer-btn { width: 50px; height: 50px; opacity: 0.6; transition: opacity 0.3s ease; z-index: 1055; }
+    .viewer-btn:hover { opacity: 1; }
 </style>
 
 <body class="bg-light">
-
     <div class="container mt-4 mb-5">
         
         <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
             <a href="{% url 'image_categories' %}" class="btn btn-dark rounded-circle shadow-sm">
                 <i class="bi bi-arrow-left"></i>
             </a>
-            <h2 class="text-primary m-0 fw-bold text-uppercase">
-                <i class="bi bi-image"></i> {{ page_title }} GALLERY
+            <h2 class="text-primary m-0 fw-bold text-uppercase text-center flex-grow-1">
+                <i class="bi bi-image"></i> {{ page_title }}
             </h2>
             <div style="width: 40px;"></div> 
         </div>
 
-        <div class="row g-4">
-            {% for item in images %}
-            <div class="col-12 col-md-4 col-lg-3">
-                <div class="gallery-item" onclick="openViewer({{ forloop.counter0 }})">
-                    <img src="{{ item.image.url }}" class="gallery-img" alt="{{ item.name }}">
+        {% if is_all %}
+            {% for cat_name, data in grouped_images.items %}
+                <div class="mb-5">
+                    <h3 class="text-primary fw-bold border-start border-4 border-primary ps-2 mb-3">{{ cat_name }}</h3>
                     
-                    <div class="gallery-info bg-white">
-                        <h6 class="fw-bold text-dark text-truncate mb-1" title="{{ item.name }}">{{ item.name }}</h6>
-                        <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                        {% if item.size %}
-                            <span class="badge border border-dark text-dark">{{ item.size }}</span>
-                        {% endif %}
+                    {% if data.pending %}
+                        <h6 class="text-warning fw-bold mt-3">PENDING</h6>
+                        <div class="row g-3 mb-3">
+                            {% for item in data.pending %}
+                            <div class="col-12 col-md-4 col-lg-3">
+                                <div class="gallery-item">
+                                    <img src="{{ item.image.url }}" class="gallery-img" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
+                                    <div class="gallery-info bg-light">
+                                        <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
+                                        <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
+                                        <div class="mt-2"><a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Approve</a></div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% if data.show %}
+                        <h6 class="text-success fw-bold mt-3">SHOW</h6>
+                        <div class="row g-3 mb-3">
+                            {% for item in data.show %}
+                            <div class="col-12 col-md-4 col-lg-3">
+                                <div class="gallery-item">
+                                    <img src="{{ item.image.url }}" class="gallery-img border-success" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
+                                    <div class="gallery-info bg-white">
+                                        <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
+                                        <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
+                                        <div class="mt-2"><a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-outline-danger fw-bold py-0">Hide</a></div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    {% if data.unshow %}
+                        <h6 class="text-danger fw-bold mt-3">UNSHOW (HIDDEN)</h6>
+                        <div class="row g-3 mb-3">
+                            {% for item in data.unshow %}
+                            <div class="col-12 col-md-4 col-lg-3">
+                                <div class="gallery-item">
+                                    <img src="{{ item.image.url }}" class="gallery-img border-danger" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
+                                    <div class="gallery-info bg-white">
+                                        <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
+                                        <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
+                                        <div class="mt-2"><a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Show</a></div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+        {% else %}
+            {% if pending_images %}
+                <h4 class="text-warning fw-bold mt-4">PENDING</h4>
+                <div class="row g-3 mb-4">
+                    {% for item in pending_images %}
+                    <div class="col-12 col-md-4 col-lg-3">
+                        <div class="gallery-item">
+                            <img src="{{ item.image.url }}" class="gallery-img" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
+                            <div class="gallery-info bg-light border-top">
+                                <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
+                                <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
+                                <div class="mt-2 d-flex justify-content-center gap-2">
+                                    <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold">SHOW</a>
+                                    <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-danger fw-bold">Hide</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <h4 class="text-success fw-bold mt-4">SHOW</h4>
+            <div class="row g-4">
+                {% for item in show_images %}
+                <div class="col-12 col-md-4 col-lg-3">
+                    <div class="gallery-item">
+                        <img src="{{ item.image.url }}" class="gallery-img border-success" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
+                        <div class="gallery-info bg-white">
+                            <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
+                            <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
+                            <div class="mt-2 text-end"><a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-outline-danger fw-bold">Hide</a></div>
+                        </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
-            {% empty %}
-            <div class="col-12 text-center py-5">
-                <i class="bi bi-images text-muted" style="font-size: 4rem;"></i>
-                <h4 class="text-muted mt-3">No images found in this category.</h4>
-                <p class="small text-secondary">Images might not be uploaded or approved yet.</p>
-            </div>
-            {% endfor %}
-        </div>
+
+            {% if unshow_images %}
+                <h4 class="text-danger fw-bold mt-4">UNSHOW (HIDDEN)</h4>
+                <div class="row g-3 mb-4">
+                    {% for item in unshow_images %}
+                    <div class="col-12 col-md-4 col-lg-3">
+                        <div class="gallery-item">
+                            <img src="{{ item.image.url }}" class="gallery-img border-danger" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
+                            <div class="gallery-info bg-white">
+                                <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
+                                <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
+                                <div class="mt-2"><a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold">Show</a></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endif %}
     </div>
 
     <div class="modal fade" id="imageViewerModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-fullscreen">
             <div class="modal-content bg-dark border-0">
-                
-                <div class="modal-header border-0 bg-transparent position-absolute w-100 z-3" style="top: 0;">
-                    <button type="button" class="btn-close btn-close-white ms-auto m-3" data-bs-dismiss="modal" aria-label="Close" style="width: 1.5rem; height: 1.5rem;"></button>
-                </div>
-                
+                <button type="button" class="btn-close btn-close-white position-absolute m-3 z-3" data-bs-dismiss="modal"></button>
                 <div class="modal-body p-0 d-flex justify-content-center align-items-center position-relative" id="swipeArea">
-                    
-                    <button class="btn btn-light position-absolute start-0 top-50 translate-middle-y ms-2 ms-md-4 rounded-circle viewer-btn" onclick="changeImage(-1)">
-                        <i class="bi bi-chevron-left fs-4 text-dark fw-bold"></i>
-                    </button>
-
-                    <img id="viewerImage" src="" class="img-fluid" style="max-height: 80vh; object-fit: contain; max-width: 90vw;" alt="Viewed Image">
-
-                    <button class="btn btn-light position-absolute end-0 top-50 translate-middle-y me-2 me-md-4 rounded-circle viewer-btn" onclick="changeImage(1)">
-                        <i class="bi bi-chevron-right fs-4 text-dark fw-bold"></i>
-                    </button>
-                    
+                    <button class="btn btn-light position-absolute start-0 top-50 translate-middle-y ms-2 rounded-circle viewer-btn" onclick="changeImage(-1)"><i class="bi bi-chevron-left"></i></button>
+                    <img id="viewerImage" src="" class="img-fluid" style="max-height: 80vh; max-width: 90vw;">
+                    <button class="btn btn-light position-absolute end-0 top-50 translate-middle-y me-2 rounded-circle viewer-btn" onclick="changeImage(1)"><i class="bi bi-chevron-right"></i></button>
                 </div>
-
-                <div class="modal-footer border-0 bg-dark text-white justify-content-center pt-0 pb-4">
-                    <div class="text-center">
-                        <h4 id="viewerTitle" class="fw-bold mb-2 text-warning"></h4>
-                        <span id="viewerPrize" class="badge bg-light text-dark fs-6 me-2 shadow-sm"></span>
-                        <span id="viewerSize" class="badge border border-light text-light fs-6 shadow-sm"></span>
-                    </div>
+                <div class="modal-footer border-0 bg-dark text-white justify-content-center">
+                    <h4 id="viewerTitle" class="fw-bold"></h4>
                 </div>
-
             </div>
         </div>
     </div>
 
     <script>
-        // 1. ജാങ്കോയിൽ നിന്നുള്ള ഡാറ്റ ജാവാസ്ക്രിപ്റ്റ് അറയിൽ ആക്കുന്നു
         const galleryItems = [
-            {% for item in images %}
-            {
-                url: "{{ item.image.url|escapejs }}",
-                name: "{{ item.name|escapejs }}",
-                prize: "{{ item.encoded_prize|escapejs }}",
-                size: "{{ item.size|default:''|escapejs }}"
-            }{% if not forloop.last %},{% endif %}
-            {% endfor %}
+            {% if is_all %}
+                {% for cat_name, data in grouped_images.items %}
+                    {% for item in data.pending %}{ id: {{ item.id }}, url: "{{ item.image.url|escapejs }}", name: "{{ item.name|escapejs }}" },{% endfor %}
+                    {% for item in data.show %}{ id: {{ item.id }}, url: "{{ item.image.url|escapejs }}", name: "{{ item.name|escapejs }}" },{% endfor %}
+                    {% for item in data.unshow %}{ id: {{ item.id }}, url: "{{ item.image.url|escapejs }}", name: "{{ item.name|escapejs }}" },{% endfor %}
+                {% endfor %}
+            {% else %}
+                {% for item in pending_images %}{ id: {{ item.id }}, url: "{{ item.image.url|escapejs }}", name: "{{ item.name|escapejs }}" },{% endfor %}
+                {% for item in show_images %}{ id: {{ item.id }}, url: "{{ item.image.url|escapejs }}", name: "{{ item.name|escapejs }}" },{% endfor %}
+                {% for item in unshow_images %}{ id: {{ item.id }}, url: "{{ item.image.url|escapejs }}", name: "{{ item.name|escapejs }}" },{% endfor %}
+            {% endif %}
         ];
 
         let currentIndex = 0;
-        let isViewerOpen = false;
-        let viewerModal;
-
-        // പേജ് ലോഡ് ആകുമ്പോൾ മോഡൽ സെറ്റ് ചെയ്യുന്നു
-        document.addEventListener("DOMContentLoaded", function() {
-            viewerModal = new bootstrap.Modal(document.getElementById('imageViewerModal'));
-            
-            // മോഡൽ ഓപ്പൺ ആകുമ്പോഴും ക്ലോസ് ആകുമ്പോഴും സ്റ്റാറ്റസ് മാറ്റാൻ
-            document.getElementById('imageViewerModal').addEventListener('shown.bs.modal', () => { isViewerOpen = true; });
-            document.getElementById('imageViewerModal').addEventListener('hidden.bs.modal', () => { isViewerOpen = false; });
-        });
-
-        // 2. ഇമേജിൽ ക്ലിക്ക് ചെയ്യുമ്പോൾ വ്യൂവർ ഓപ്പൺ ചെയ്യുന്ന ഫംഗ്ഷൻ
-        function openViewer(index) {
-            if(galleryItems.length === 0) return;
-            currentIndex = index;
-            updateViewerUI();
-            viewerModal.show();
+        function openViewer(id) {
+            currentIndex = galleryItems.findIndex(i => i.id === id);
+            document.getElementById('viewerImage').src = galleryItems[currentIndex].url;
+            document.getElementById('viewerTitle').textContent = galleryItems[currentIndex].name;
+            new bootstrap.Modal(document.getElementById('imageViewerModal')).show();
         }
-
-        // 3. വ്യൂവറിലെ ഫോട്ടോയും ഡീറ്റെയിൽസും അപ്ഡേറ്റ് ചെയ്യാൻ
-        function updateViewerUI() {
-            const item = galleryItems[currentIndex];
-            document.getElementById('viewerImage').src = item.url;
-            document.getElementById('viewerTitle').textContent = item.name;
-            document.getElementById('viewerPrize').textContent = item.prize;
-            
-            const sizeElement = document.getElementById('viewerSize');
-            if(item.size) {
-                sizeElement.textContent = item.size;
-                sizeElement.style.display = 'inline-block';
-            } else {
-                sizeElement.style.display = 'none';
-            }
-        }
-
-        // 4. ഫോട്ടോ മാറ്റാൻ (Next / Prev)
         function changeImage(step) {
-            currentIndex += step;
-            // അവസാനം എത്തിയാൽ വീണ്ടും ആദ്യം മുതൽ തുടങ്ങാൻ (Wrap around)
-            if (currentIndex < 0) {
-                currentIndex = galleryItems.length - 1; 
-            } else if (currentIndex >= galleryItems.length) {
-                currentIndex = 0; 
-            }
-            updateViewerUI();
+            currentIndex = (currentIndex + step + galleryItems.length) % galleryItems.length;
+            document.getElementById('viewerImage').src = galleryItems[currentIndex].url;
+            document.getElementById('viewerTitle').textContent = galleryItems[currentIndex].name;
         }
-
-        // 5. മൊബൈൽ Swipe നിയന്ത്രിക്കാൻ (Touch Events)
-        let touchstartX = 0;
-        let touchendX = 0;
-        const swipeArea = document.getElementById('swipeArea');
-
-        swipeArea.addEventListener('touchstart', e => {
-            touchstartX = e.changedTouches[0].screenX;
-        });
-
-        swipeArea.addEventListener('touchend', e => {
-            touchendX = e.changedTouches[0].screenX;
-            handleSwipe();
-        });
-
-        function handleSwipe() {
-            // വിരൽ 50px എങ്കിലും നീങ്ങിയാൽ മാത്രം ഫോട്ടോ മാറും
-            if (touchendX < touchstartX - 50) {
-                changeImage(1); // ഇടത്തോട്ട് swipe ചെയ്താൽ Next
-            }
-            if (touchendX > touchstartX + 50) {
-                changeImage(-1); // വലത്തോട്ട് swipe ചെയ്താൽ Prev
-            }
-        }
-
-        // 6. ലാപ്‌ടോപ്പിൽ കീബോർഡിലെ Arrow Keys ഉപയോഗിക്കാൻ
-        document.addEventListener('keydown', function(event) {
-            if (isViewerOpen) {
-                if (event.key === 'ArrowLeft') {
-                    changeImage(-1);
-                } else if (event.key === 'ArrowRight') {
-                    changeImage(1);
-                } else if (event.key === 'Escape') {
-                    viewerModal.hide();
-                }
-            }
-        });
     </script>
-
 </body>
 {% endblock %}
