@@ -42,3 +42,16 @@ class PBPaidForm(forms.ModelForm):
             'description': forms.TextInput(attrs={'class': 'form-control border-danger form-control-sm', 'placeholder': 'Description...'}),
             'payment_mode': forms.Select(attrs={'class': 'form-select border-danger shadow-sm fw-bold form-control-sm'}),
         }
+
+from .models import Sofa_Paid_Entry
+
+class SofaPaidForm(forms.ModelForm):
+    class Meta:
+        model = Sofa_Paid_Entry
+        fields = ['date', 'amount', 'description', 'payment_mode']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control border-primary fw-bold form-control-sm'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control border-primary fw-bold text-primary form-control-sm', 'placeholder': 'Amount *'}),
+            'description': forms.TextInput(attrs={'class': 'form-control border-primary form-control-sm', 'placeholder': 'Description...'}),
+            'payment_mode': forms.Select(attrs={'class': 'form-select border-primary shadow-sm fw-bold form-control-sm'}),
+        }

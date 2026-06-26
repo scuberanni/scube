@@ -15,6 +15,10 @@ urlpatterns = [
     path('approve-production/<int:record_id>/', views.approve_production, name='approve_production'),
     path('delete-production/<int:record_id>/', views.delete_production, name='delete_production'),
     path('edit-production/<int:record_id>/', views.edit_production, name='edit_production'),
+    path('sofa-wage-paid-report/', views.sofa_wage_paid_report, name='sofa_wage_report_current'),
+    path('sofa-wage-paid-report/<int:year>/<int:month>/', views.sofa_wage_paid_report, name='sofa_wage_report'),
+    path('edit-sofa-payment/<int:payment_id>/', views.edit_sofa_payment, name='edit_sofa_payment'),
+    path('delete-sofa-payment/<int:payment_id>/', views.delete_sofa_payment, name='delete_sofa_payment'),
 
     # Product Master URLs
     path('product-master/', views.product_master, name='product_master'),

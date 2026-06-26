@@ -6,12 +6,12 @@ from django.contrib import messages
 from django.db.models import Sum, Q
 from django.http import JsonResponse
 
-from .forms import PrForm, OrderForm, PBPaidForm
+from .forms import PrForm, OrderForm, PBPaidForm,SofaPaidForm
 from .models import (
     Scube_ss, orders, MaterialName, Material, 
     SofaProductionRecord, ProductionMaterialItem, 
     BoardColor, BoardMaterial, ProductItem, 
-    BoardProductionRecord, PB_Paid_Entry,
+    BoardProductionRecord, PB_Paid_Entry,Sofa_Paid_Entry,
     Catogory_choice, status_choice
 )
 
@@ -871,3 +871,85 @@ def delete_board_production(request, record_id):
         record.delete()
         
     return redirect(request.META.get('HTTP_REFERER', 'board_production_summary'))
+
+def sofa_wage_paid_report(request, year=None, month=None):
+    today = datetime.date.today()
+    if year is None: year = today.year
+    if month is None: month = today.month
+
+    start_of_month = datetime.date(year, month, 1)
+    next_m_y = year + (month // 12)
+    next_m_m = (month % 12) + 1
+    end_of_month = datetime.date(next_m_y, next_m_m, 1) - datetime.timedelta(days=1)
+
+    prev_m_y = year + ((month - 2) // 12)
+    prev_m_m = ((month - 2) % 12) + 1
+    
+    payment_form = SofaPaidForm()
+    
+    if request.method == 'POST':
+        if 'add_payment' in request.POST:
+            form = SofaPaidForm(request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Payment added successfully.')
+                return redirect('sofa_wage_report', year=year, month=month)
+            else:
+                payment_form = form
+
+    # Calculations for Sofa (Using wage_cost from SofaProductionRecord)
+    prev_total_wage = SofaProductionRecord.objects.filter(date__lt=start_of_month).aggregate(total=Sum('wage_cost'))['total'] or 0
+    prev_total_paid = Sofa_Paid_Entry.objects.filter(date__lt=start_of_month).aggregate(total=Sum('amount'))['total'] or 0
+    previous_month_balance = prev_total_wage - prev_total_paid
+
+    current_month_wages_list = SofaProductionRecord.objects.filter(
+        date__gte=start_of_month, date__lte=end_of_month
+    ).order_by('date', 'id')
+    current_month_total_wage = current_month_wages_list.aggregate(total=Sum('wage_cost'))['total'] or 0
+
+    current_month_payments_list = Sofa_Paid_Entry.objects.filter(
+        date__gte=start_of_month, date__lte=end_of_month
+    ).order_by('date', 'id')
+    current_month_total_paid = current_month_payments_list.aggregate(total=Sum('amount'))['total'] or 0
+
+    excel_total_due = previous_month_balance + current_month_total_wage
+    excel_current_balance = excel_total_due - current_month_total_paid
+
+    context = {
+        'year': year,
+        'month_obj': start_of_month,
+        'prev_month': prev_m_m,
+        'prev_year': prev_m_y,
+        'next_month': next_m_m,
+        'next_year': next_m_y,
+        'wages': current_month_wages_list,
+        'payments': current_month_payments_list,
+        'total_w_monthly': current_month_total_wage,
+        'prev_balance': previous_month_balance,
+        'excel_total_due': excel_total_due,
+        'current_paid_monthly': current_month_total_paid,
+        'current_balance': excel_current_balance,
+        'payment_form': payment_form,
+    }
+    return render(request, 'sofa_monthly_wage_paid.html', context)
+
+def edit_sofa_payment(request, payment_id):
+    payment = get_object_or_404(Sofa_Paid_Entry, id=payment_id)
+    if request.method == 'POST':
+        payment.date = request.POST.get('date')
+        payment.amount = request.POST.get('amount')
+        payment.description = request.POST.get('description')
+        payment.payment_mode = request.POST.get('payment_mode')
+        payment.save()
+        payment.refresh_from_db()
+        
+    if payment.date:
+        return redirect('sofa_wage_report', year=payment.date.year, month=payment.date.month) 
+    return redirect('sofa_wage_report_current')
+
+def delete_sofa_payment(request, payment_id):
+    payment = get_object_or_404(Sofa_Paid_Entry, id=payment_id)
+    year, month = payment.date.year, payment.date.month
+    if request.method == 'POST':
+        payment.delete()
+    return redirect('sofa_wage_report', year=year, month=month)

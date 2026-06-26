@@ -190,3 +190,17 @@ class PB_Paid_Entry(models.Model):
 
     def __str__(self):
         return f"{self.date} - {self.amount} ({self.payment_mode})"
+    
+class Sofa_Paid_Entry(models.Model):
+    PAYMENT_MODE_CHOICES = [
+        ('CASH', 'CASH'),
+        ('GPAY', 'GPAY'),
+    ]
+
+    date = models.DateField(verbose_name="Date")
+    amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Amount")
+    description = models.CharField(max_length=255, null=True, blank=True, verbose_name="Description")
+    payment_mode = models.CharField(max_length=10, choices=PAYMENT_MODE_CHOICES, default='CASH', verbose_name="Payment Mode")
+
+    def __str__(self):
+        return f"{self.date} - {self.amount} ({self.payment_mode})"
