@@ -201,7 +201,7 @@
                                 <thead class="table-light border-bottom border-dark">
                                     <tr class="labels-row">
                                         <th class="py-2 small">#</th>
-                                        <th class="small">CODE</th>
+                                        <th class="small">IMAGE</th>
                                         <th class="small">DATE</th>
                                         <th class="text-start small">SOFA NAME</th>
                                         <th class="small">SIZE</th>
@@ -213,7 +213,17 @@
                                     {% for record in wages %}
                                     <tr class="product-row border-bottom border-light align-items-center">
                                         <td class="small text-muted">{{ forloop.counter }}</td>
-                                        <td class="small fw-bold"><span class="badge bg-dark px-1 py-0 rounded">{{ record.sofa_code|default:"-" }}</span></td>
+                                        <td class="small fw-bold">
+                                            {% if record.image %}
+                                                <a href="{{ record.image.url }}" target="_blank">
+                                                <img src="{{ record.image.url }}" alt="{{ record.sofa_code }}" 
+                                                style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px; border: 1px solid #ccc;">
+                                                </a> {{   record.sofa_code|default:"--" }}
+                                            {% else %}
+                                                <span class="badge bg-secondary px-1 py-0 rounded">-</span>
+                                            {% endif %}
+                                        </td>
+                                        
                                         <td class="small fw-bold">{{ record.date|date:"d-m-Y"|default:"-" }}</td>
                                         <td class="text-start small fw-bold">{{ record.sofa_name|default:"-" }}</td>
                                         <td class="small">{{ record.sofa_size|default:"-" }}</td>
