@@ -1,11 +1,16 @@
 
-from django.urls import path
+from django.urls import path ,include
+from django.contrib.auth import views as auth_views
 from . import views
 
 
 urlpatterns = [
 
     path('',views.home,name='home'),
+
+    path('accounts/login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    path('accounts/', include('django.contrib.auth.urls')),
+
     path('others-menu/', views.others_menu, name='others_menu'),
     path('image-categories/', views.image_categories, name='image_categories'),
     path('gallery/<str:category>/', views.image_gallery, name='image_gallery'),

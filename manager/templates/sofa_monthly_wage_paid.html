@@ -218,7 +218,8 @@
                                                 <a href="{{ record.image.url }}" target="_blank">
                                                 <img src="{{ record.image.url }}" alt="{{ record.sofa_code }}" 
                                                 style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px; border: 1px solid #ccc;">
-                                                </a> {{   record.sofa_code|default:"--" }}
+                                                </a> <a href="{% url 'production_bill' record.id %}" class="text-decoration-none text-danger ms-1" title="View Bill">
+                                                    {{ record.sofa_code|default:"--" }}</a>
                                             {% else %}
                                                 <span class="badge bg-secondary px-1 py-0 rounded">-</span>
                                             {% endif %}
