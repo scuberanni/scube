@@ -15,7 +15,7 @@ from .models import (
     Scube_ss, orders, MaterialName, Material, 
     SofaProductionRecord, ProductionMaterialItem, 
     BoardColor, BoardMaterial, ProductItem, 
-    BoardProductionRecord, PB_Paid_Entry, Sofa_Paid_Entry,
+    BoardProductionRecord, PB_Paid_Entry, Sofa_Paid_Entry,Invoice, InvoiceItem,
     Catogory_choice, status_choice
 )
 
@@ -950,3 +950,113 @@ def sales_reports(request):
         return render(request, 'sales_reports.html', {'PR_reports': P_rep})
     else:
         return render(request, 'sales_reports.html')
+    
+
+
+
+# ==============================================================================
+# 5. SALES BILL & INVOICE (Admin Only)
+# ==============================================================================
+
+
+@user_passes_test(is_admin)
+def sales_bill(request):
+    if request.method == 'POST':
+        date = request.POST.get('date')
+        cust_status = request.POST.get('customer_name') # ഇത് ഡ്രോപ്പ് ഡൗണിൽ നിന്നുള്ള സ്റ്റാറ്റസ് ആണ്
+        
+        last_inv = Invoice.objects.order_by('-id').first()
+        if last_inv:
+            inv_no = f"INV{int(last_inv.id) + 1:04d}"
+        else:
+            inv_no = "INV0001"
+            
+        invoice = Invoice.objects.create(
+            invoice_number=inv_no, date=date, customer_name=cust_status
+        )
+        
+        # പുതിയ ഡിസൈനിലെ ഇൻപുട്ട് പേരുകൾ
+        p_ids = request.POST.getlist('product_ids[]')
+        qtys = request.POST.getlist('quantities[]')
+        prices = request.POST.getlist('prices[]')
+        totals = request.POST.getlist('totals[]')
+        
+        g_total = 0
+        for i in range(len(p_ids)):
+            if p_ids[i]:
+                try:
+                    prod = Scube_ss.objects.get(id=p_ids[i])
+                    q = int(qtys[i]) if i < len(qtys) else 1
+                    p = float(prices[i]) if i < len(prices) else 0.0
+                    t = float(totals[i]) if i < len(totals) else 0.0
+                    
+                    InvoiceItem.objects.create(
+                        invoice=invoice, category=prod.Catogory, product=prod,
+                        quantity=q, price=p, total=t
+                    )
+                    g_total += t
+                    
+                    # 🟢 SCUBE മാസ്റ്റർ ടേബിൾ അപ്ഡേറ്റ് ചെയ്യുന്നു 
+                    prod.status = cust_status     
+                    prod.sl_date = date           
+                    prod.prize = int(p)           
+                    prod.save()
+                except Exception as e:
+                    print(e)
+        
+        invoice.grand_total = g_total
+        invoice.save()
+        messages.success(request, f"Invoice {inv_no} created successfully!")
+        return redirect('sales_bill')
+        
+    categories = Catogory_choice
+    statuses = status_choice  
+    # 🟢 SCUBE സ്റ്റാറ്റസ് ഉള്ളവ മാത്രം എടുത്ത് പേജിലേക്ക് നൽകുന്നു
+    scube_products = Scube_ss.objects.filter(status='SCUBE').order_by('Catogory', 'name')
+    
+    return render(request, 'sales_bill.html', {
+        'categories': categories, 
+        'statuses': statuses, 
+        'scube_products': scube_products
+    })
+
+@user_passes_test(is_admin)
+def get_scube_products(request):
+    # ഡ്രോപ്പ് ഡൗണിൽ കാണിക്കാൻ വേണ്ടി SCUBE സ്റ്റാറ്റസ് ഉള്ളവ മാത്രം എടുക്കുന്നു
+    cat = request.GET.get('category')
+    products = Scube_ss.objects.filter(Catogory=cat, status='SCUBE').values('id', 'name', 'code', 'prize')
+    return JsonResponse({'products': list(products)})
+
+# 🟢 ഇൻവോയ്സ് ഹിസ്റ്ററി (ഫിൽറ്ററുകൾ സഹിതം)
+@user_passes_test(is_admin)
+def invoice_history(request):
+    today = datetime.date.today()
+    # ഡിഫോൾട്ട് ആയി ഈ മാസത്തെ ആദ്യത്തെ തിയ്യതി മുതൽ ഇന്നത്തെ തിയ്യതി വരെ
+    first_day_of_month = today.replace(day=1)
+    
+    start_date = request.GET.get('start_date') or first_day_of_month.strftime('%Y-%m-%d')
+    end_date = request.GET.get('end_date') or today.strftime('%Y-%m-%d')
+    status = request.GET.get('status')
+
+    invoices = Invoice.objects.filter(date__gte=start_date, date__lte=end_date)
+    
+    if status:
+        invoices = invoices.filter(customer_name=status)
+        
+    invoices = invoices.order_by('-date', '-id')
+
+    context = {
+        'invoices': invoices,
+        'start_date': start_date,
+        'end_date': end_date,
+        'status': status,
+        'statuses': status_choice
+    }
+    return render(request, 'invoice_history.html', context)
+
+# 🟢 ഇൻവോയ്സ് ഡീറ്റെയിൽ കാണാനുള്ള ഫംഗ്ഷൻ
+@user_passes_test(is_admin)
+def invoice_detail(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    items = invoice.items.all()
+    return render(request, 'invoice_detail.html', {'invoice': invoice, 'items': items})

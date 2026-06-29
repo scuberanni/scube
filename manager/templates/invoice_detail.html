@@ -1,0 +1,147 @@
+{% extends 'blank_layout.html' %}
+{% block content %}
+
+<style>
+    body { background-color: #121212 !important; }
+    .invoice-wrapper {
+        background-color: #ffffff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .brand-logo-icon { color: #dc3545; font-size: 2.5rem; line-height: 1; }
+    .brand-title { font-size: 1.8rem; font-weight: 800; color: #333; margin: 0; }
+    .invoice-title-text { font-size: 2.2rem; font-weight: 800; color: #333; letter-spacing: 1px; }
+    
+    .info-box {
+        background-color: #f8f9fa;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+    }
+    .table-header {
+        background-color: #212529; color: #ffffff;
+        font-weight: 600; font-size: 0.95rem;
+    }
+    .item-row { border-bottom: 1px solid #e9ecef; }
+    .total-block {
+        background-color: #ffc107; color: #000000;
+        font-weight: 800; padding: 15px 20px; font-size: 1.4rem;
+        border-radius: 8px;
+    }
+    .product-img {
+        width: 40px; height: 40px; object-fit: cover;
+        border-radius: 6px; border: 1px solid #dee2e6;
+    }
+
+    @media print {
+        body { background-color: #ffffff !important; }
+        .no-print { display: none !important; }
+        .invoice-wrapper { box-shadow: none; padding: 0 !important; }
+    }
+</style>
+
+<div class="container mt-4 mb-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-3 no-print" style="max-width: 900px; margin: 0 auto;">
+        <a href="{% url 'invoice_history' %}" class="btn btn-outline-light rounded-pill px-4 fw-bold shadow-sm"><i class="bi bi-arrow-left"></i> Back to History</a>
+        <button onclick="window.print()" class="btn btn-warning fw-bold rounded-pill px-4 shadow-sm"><i class="bi bi-printer-fill me-1"></i> Print / Save PDF</button>
+    </div>
+
+    <div class="invoice-wrapper rounded-4 p-4 p-md-5">
+        
+        <div class="row align-items-center mb-5 border-bottom pb-4">
+            <div class="col-12 col-md-6 d-flex align-items-center justify-content-center justify-content-md-start mb-3 mb-md-0">
+                <i class="bi bi-layers-fill brand-logo-icon me-2"></i>
+                <div>
+                    <h3 class="brand-title">SCUBE</h3>
+                    <p class="text-muted small m-0" style="letter-spacing: 1px;">PREMIUM FURNITURES</p>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 text-center text-md-end">
+                <h1 class="invoice-title-text mb-0">INVOICE</h1>
+                <p class="text-muted fw-bold m-0 mt-1">#{{ invoice.invoice_number }}</p>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-sm-6 mb-3 mb-sm-0">
+                <div class="info-box rounded">
+                    <p class="text-muted small text-uppercase mb-1 fw-bold">Billed To (Status)</p>
+                    <h5 class="fw-bold text-dark m-0">{{ invoice.customer_name|default:"Not Specified" }}</h5>
+                </div>
+            </div>
+            <div class="col-sm-6 text-sm-end">
+                <p class="text-muted small text-uppercase mb-1 fw-bold">Date of Issue</p>
+                <h5 class="fw-bold text-dark m-0">{{ invoice.date|date:"d F Y" }}</h5>
+            </div>
+        </div>
+
+        <div class="table-responsive mb-5">
+            <table class="table align-middle mb-0 border">
+                <thead class="table-header text-center">
+                    <tr>
+                        <th class="py-3 text-start ps-4">SL</th>
+                        <th class="text-start">Product Details</th>
+                        <th>Category</th>
+                        <th class="text-end pe-4">Price (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr class="item-row text-center">
+                        <td class="fw-bold text-muted text-start ps-4">{{ forloop.counter }}</td>
+                        <td class="text-start">
+                            <div class="d-flex align-items-center">
+                                {% if item.product and item.product.image %}
+                                    <img src="{{ item.product.image.url }}" class="product-img me-3 shadow-sm" alt="img">
+                                {% else %}
+                                    <div class="product-img me-3 bg-light d-flex align-items-center justify-content-center text-muted"><i class="bi bi-image"></i></div>
+                                {% endif %}
+                                <div>
+                                    {% if item.product %}
+                                        <h6 class="mb-0 fw-bold text-dark">{{ item.product.code }} - {{ item.product.name }}</h6>
+                                        {% if item.product.color and item.product.Catogory != 'SOFA' %}
+                                            <small class="text-muted fw-bold">Color: {{ item.product.color }}</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <h6 class="mb-0 fw-bold text-muted">Product Removed</h6>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="fw-bold text-secondary">{{ item.category }}</td>
+                        <td class="text-end fw-bold text-dark pe-4 fs-5">{{ item.price|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row">
+            <div class="col-12 col-md-5 mb-4 mb-md-0">
+                <h6 class="fw-bold text-dark">Term & Conditions</h6>
+                <p class="text-muted small pe-md-5" style="line-height: 1.6;">
+                    Thank you for choosing SCUBE Premium Furnitures. This document serves as a record of the items whose status has been officially updated in the system.
+                </p>
+            </div>
+            <div class="col-12 col-md-7">
+                <div class="d-flex justify-content-between align-items-center mb-2 px-2">
+                    
+                </div>
+                
+                <div class="total-block shadow-sm">
+                    <span class="text-uppercase" style="letter-spacing: 1px;">Grand Total:</span>
+                    <span class="float-end">₹ {{ invoice.grand_total|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5 pt-5 pb-3">
+            <div class="col-12 text-center text-muted small fw-bold">
+                <p class="mb-0">Authorized Signatory</p>
+                <p class="mb-0 mt-3" style="border-top: 1px dashed #ccc; width: 200px; margin: 0 auto; padding-top: 10px;">SCUBE</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

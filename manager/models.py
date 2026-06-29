@@ -251,3 +251,21 @@ class Sofa_Paid_Entry(models.Model):
 
     def __str__(self):
         return f"{self.date} - {self.amount} ({self.payment_mode})"
+    
+# --- INVOICE MODELS ---
+class Invoice(models.Model):
+    invoice_number = models.CharField(max_length=50, unique=True)
+    date = models.DateField()
+    customer_name = models.CharField(max_length=100, null=True, blank=True) # ഇത് സ്റ്റാറ്റസ് സേവ് ചെയ്യാനാണ്
+    grand_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    def __str__(self):
+        return self.invoice_number
+
+class InvoiceItem(models.Model):
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='items')
+    category = models.CharField(max_length=50, null=True, blank=True)
+    product = models.ForeignKey(Scube_ss, on_delete=models.SET_NULL, null=True)
+    quantity = models.IntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)

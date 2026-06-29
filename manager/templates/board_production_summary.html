@@ -90,7 +90,7 @@
                                     <form method="POST" action="{% url 'delete_board_production' record.id %}" style="display:inline;">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-sm btn-danger px-2 py-1 shadow-sm" title="Delete" onclick="return confirm('Delete {{ record.cl_name }}?');">
-                                            <i class="bi bi-trash">Dlt</i>
+                                            <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
                                 </div>

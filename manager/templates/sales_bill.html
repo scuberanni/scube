@@ -1,0 +1,388 @@
+{% extends 'blank_layout.html' %}
+{% block content %}
+
+<style>
+    /* Premium Invoice UI Styles */
+    body {
+        background-color: #121212 !important; /* Dark App Background */
+    }
+    .text-outside {
+        color: #f8f9fa !important;
+    }
+
+    /* Invoice Container Styling */
+    .invoice-container {
+        background-color: #ffffff;
+        color: #333333;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    
+    /* Brand & Title */
+    .brand-logo-icon {
+        color: #dc3545;
+        font-size: 2.5rem;
+        line-height: 1;
+    }
+    .brand-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #333;
+        margin: 0;
+    }
+    .invoice-title-text {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #333;
+        letter-spacing: 1px;
+    }
+
+    /* Table & Inputs */
+    .table-header {
+        background-color: #212529;
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    .item-row {
+        border-bottom: 1px solid #e9ecef;
+        transition: background-color 0.2s;
+    }
+    .item-row:hover {
+        background-color: #f8f9fa;
+    }
+    .invoice-input {
+        border: 1px solid #ced4da;
+        background-color: #fdfdfd;
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.95rem;
+    }
+    .invoice-input:focus {
+        border-color: #ffc107;
+        box-shadow: none;
+        background-color: #ffffff;
+    }
+    .price-input {
+        color: #212529 !important;
+        font-weight: 700;
+    }
+    
+    /* Thumbnails */
+    .product-thumb {
+        width: 35px; height: 35px; 
+        object-fit: cover; 
+        border-radius: 6px; 
+        border: 1px solid #dee2e6;
+    }
+
+    /* Total Block */
+    .total-block {
+        background-color: #ffc107;
+        color: #000000;
+        font-weight: 800;
+        padding: 10px 20px;
+        font-size: 1.25rem;
+    }
+
+    @media print {
+        body { background-color: #ffffff !important; }
+        .no-print { display: none !important; }
+        .invoice-container { box-shadow: none; padding: 0 !important; }
+    }
+</style>
+
+<body>
+
+    <!-- 🟢 Hidden Master Dropdown -->
+    <select id="all-products-master" style="display:none;">
+        {% for p in scube_products %}
+            <option value="{{ p.id }}" data-category="{{ p.Catogory }}" data-price="{{ p.prize|default:0 }}" data-image="{% if p.image %}{{ p.image.url }}{% endif %}">
+                {{ p.code }} - {{ p.name }}{% if p.color %} - {{ p.color }}{% endif %}
+            </option>
+        {% endfor %}
+    </select>
+
+    <!-- External Buttons Area -->
+    <div class="container mt-4 mb-3 no-print">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="text-outside m-0 fw-bold"><i class="bi bi-receipt"></i> Billing System</h4>
+            <div class="d-flex gap-2">
+                <a href="{% url 'home' %}" class="btn btn-outline-light rounded-pill px-3 fw-bold btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+                <a href="{% url 'invoice_history' %}" class="btn btn-light text-dark rounded-pill px-3 fw-bold btn-sm"><i class="bi bi-clock-history"></i> History</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN INVOICE CONTAINER -->
+    <div class="container invoice-container rounded-4 p-4 p-md-5 mb-5">
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success fw-bold border-0 shadow-sm"><i class="bi bi-check-circle-fill me-2"></i>{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="" id="production-form">
+            {% csrf_token %}
+            
+            <!-- HEADER SECTION -->
+            <div class="row align-items-center mb-5">
+                <div class="col-6 d-flex align-items-center">
+                    <i class="bi bi-layers-fill brand-logo-icon me-2"></i>
+                    <div>
+                        <h3 class="brand-title">SCUBE</h3>
+                        <p class="text-muted small m-0" style="letter-spacing: 1px;">PREMIUM FURNITURES</p>
+                    </div>
+                </div>
+                <div class="col-6 text-end">
+                    <div class="d-flex align-items-center justify-content-end">
+                        <h1 class="invoice-title-text me-3 mb-0">INVOICE</h1>
+                        <div class="bg-warning" style="width: 40px; height: 40px;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-5">
+                <div class="col-12 col-md-6">
+                    <div class="bg-warning px-3 py-1 mb-3 d-inline-block fw-bold text-dark text-uppercase small">Invoice To:</div>
+                    <div class="mb-2">
+                        <select name="customer_name" class="form-select invoice-input w-75" required>
+                            <option value="">Select Status / Customer...</option>
+                            {% for st in statuses %}
+                                <option value="{{ st.0 }}">{{ st.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 text-md-end mt-3 mt-md-0">
+                    <div class="d-flex justify-content-md-end align-items-center mb-2">
+                        <span class="fw-bold text-dark me-2">Date:</span>
+                        <input type="date" name="date" class="form-control invoice-input w-auto text-end" required value="{% now 'Y-m-d' %}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLE SECTION -->
+            <div class="mb-4">
+                <!-- Table Header -->
+                <div class="row table-header py-2 px-3 align-items-center d-none d-md-flex">
+                    <div class="col-md-3">Category</div>
+                    <div class="col-md-6">Item Description (Product)</div>
+                    <div class="col-md-2 text-end">Price</div>
+                    <div class="col-md-1 text-center no-print">Act</div>
+                </div>
+
+                <!-- Table Body / Repeater -->
+                <div id="item-repeater">
+                    <div class="row item-row py-3 px-3 align-items-center">
+                        
+                        <!-- Hidden Inputs required for backend views.py -->
+                        <input type="hidden" name="quantities[]" class="qty-input" value="1">
+                        <input type="hidden" name="totals[]" class="total-input" value="0">
+
+                        <div class="col-12 col-md-3 mb-2 mb-md-0">
+                            <select class="form-select invoice-input category-select" required onchange="filterProducts(this)">
+                                <option value="" selected>Choose Category...</option>
+                                {% for code, name in categories %}
+                                    <option value="{{ code }}">{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-6 mb-2 mb-md-0 d-flex align-items-center">
+                            <!-- ഇമേജ് കാണിക്കാനുള്ള ഭാഗം -->
+                            <img src="" class="product-thumb d-none me-2" alt="">
+                            <select name="product_ids[]" class="form-select invoice-input prod-select" required onchange="setPrice(this)">
+                                <option value="" selected>Select Category First...</option>
+                            </select>
+                        </div>
+
+                        <div class="col-10 col-md-2 mb-2 mb-md-0">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-secondary text-muted">₹</span>
+                                <input type="number" step="0.01" name="prices[]" class="form-control invoice-input price-input text-md-end" placeholder="0.00" onkeyup="updateGrandTotal()" onchange="updateGrandTotal()" required>
+                            </div>
+                        </div>
+
+                        <!-- 🟢 Delete Button (Always Visible) -->
+                        <div class="col-2 col-md-1 text-end text-md-center no-print">
+                            <button type="button" class="btn btn-sm text-danger remove-row-btn" onclick="removeRow(this)" title="Remove Item">
+                                <i class="bi bi-trash-fill fs-5"></i>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Add Row Button -->
+                <div class="row px-3 mt-2 no-print">
+                    <div class="col-12">
+                        <button type="button" class="btn btn-link text-decoration-none text-muted fw-bold p-0 mt-1" onclick="addProductRow()">
+                            <i class="bi bi-plus-circle-fill text-warning me-1"></i> Add Another Item
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER SECTION (Totals) -->
+            <div class="row mt-5">
+                <div class="col-12 col-md-9">
+                    <div class="total-block d-flex justify-content-between align-items-center">
+                        <span class="text-uppercase" style="letter-spacing: 1px;">Total:</span>
+                        <span>₹ <span id="grandTotalDisplay">0.00</span></span>
+                    </div>
+                </div>
+                <div class="col-12 col-md-3 mt-4 mt-md-0">
+                    
+                    <button type="submit" class="btn btn-dark px-5 py-3 rounded-pill fw-bold shadow" style="font-size: 1.1rem; min-width: 250px;">
+                       GENERATE INVOICE
+                    </button>
+                </div>
+            </div>
+
+            
+
+        </form>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        function refreshAllProductDropdowns() {
+            let selectedProductIds = [];
+            
+            document.querySelectorAll('.prod-select').forEach(sel => {
+                if (sel.value) selectedProductIds.push(sel.value);
+            });
+
+            document.querySelectorAll('.item-row').forEach(row => {
+                let catSelect = row.querySelector('.category-select');
+                let prodSelect = row.querySelector('.prod-select');
+                let currentCat = catSelect.value;
+                let currentProd = prodSelect.value; 
+
+                prodSelect.innerHTML = '<option value="">Select Product...</option>';
+
+                if (currentCat) {
+                    const options = document.getElementById('all-products-master').querySelectorAll(`option[data-category="${currentCat}"]`);
+                    options.forEach(opt => {
+                        if (!selectedProductIds.includes(opt.value) || opt.value === currentProd) {
+                            prodSelect.innerHTML += `<option value="${opt.value}" data-price="${opt.getAttribute('data-price')}" data-image="${opt.getAttribute('data-image')}">${opt.innerHTML}</option>`;
+                        }
+                    });
+                } else {
+                    prodSelect.innerHTML = '<option value="">Select Category First...</option>';
+                }
+
+                prodSelect.value = currentProd; 
+            });
+        }
+
+        function filterProducts(selectObj) {
+            let row = selectObj.closest('.item-row');
+            row.querySelector('.prod-select').value = "";
+            row.querySelector('.price-input').value = "";
+            row.querySelector('.total-input').value = "0";
+            
+            let thumb = row.querySelector('.product-thumb');
+            thumb.src = "";
+            thumb.classList.add('d-none');
+            
+            refreshAllProductDropdowns();
+            updateGrandTotal();
+        }
+
+        function setPrice(selectObj) {
+            let selectedValue = selectObj.value;
+            let row = selectObj.closest('.item-row');
+            
+            if (selectedValue) {
+                let allSelects = document.querySelectorAll('.prod-select');
+                let isDuplicate = false;
+                
+                allSelects.forEach(sel => {
+                    if (sel !== selectObj && sel.value === selectedValue) {
+                        isDuplicate = true;
+                    }
+                });
+
+                if (isDuplicate) {
+                    alert("ഈ പ്രൊഡക്റ്റ് ഇതിനകം ബില്ലിൽ ചേർത്തിട്ടുണ്ട്! (Already Selected)");
+                    selectObj.value = ""; 
+                    row.querySelector('.price-input').value = '';
+                    row.querySelector('.total-input').value = '0';
+                    row.querySelector('.product-thumb').classList.add('d-none');
+                    updateGrandTotal();
+                    return; 
+                }
+            }
+
+            let selectedOption = selectObj.options[selectObj.selectedIndex];
+            let price = selectedOption && selectedValue !== "" ? (selectedOption.getAttribute('data-price') || '') : '';
+            let imageSrc = selectedOption && selectedValue !== "" ? (selectedOption.getAttribute('data-image') || '') : '';
+            
+            row.querySelector('.price-input').value = price;
+
+            let thumb = row.querySelector('.product-thumb');
+            if (imageSrc) {
+                thumb.src = imageSrc;
+                thumb.classList.remove('d-none');
+            } else {
+                thumb.src = '';
+                thumb.classList.add('d-none');
+            }
+
+            updateGrandTotal();
+            refreshAllProductDropdowns(); 
+        }
+
+        function addProductRow() {
+            const repeater = document.getElementById('item-repeater');
+            const rows = repeater.querySelectorAll('.item-row');
+            const firstRow = rows[0];
+            const newRow = firstRow.cloneNode(true); 
+
+            newRow.querySelector('.category-select').selectedIndex = 0;
+            newRow.querySelector('.prod-select').innerHTML = '<option value="">Select Category First...</option>';
+            newRow.querySelector('.prod-select').value = ""; 
+            newRow.querySelector('.price-input').value = '';
+            newRow.querySelector('.total-input').value = '0';
+            
+            let thumb = newRow.querySelector('.product-thumb');
+            if (thumb) {
+                thumb.src = '';
+                thumb.classList.add('d-none');
+            }
+
+            repeater.appendChild(newRow); 
+            refreshAllProductDropdowns();
+        }
+
+        function removeRow(btn) {
+            const repeater = document.getElementById('item-repeater');
+            if(repeater.querySelectorAll('.item-row').length > 1) {
+                btn.closest('.item-row').remove();
+                updateGrandTotal();
+                refreshAllProductDropdowns();
+            } else {
+                alert("Minimum one item is required.");
+            }
+        }
+
+        function updateGrandTotal() {
+            let grandTotal = 0;
+            document.querySelectorAll('.price-input').forEach(input => {
+                let val = parseFloat(input.value || 0);
+                grandTotal += val;
+                
+                let row = input.closest('.item-row');
+                row.querySelector('.total-input').value = val.toFixed(2);
+            });
+            
+            document.getElementById('grandTotalDisplay').innerText = grandTotal.toFixed(2);
+            document.getElementById('subTotalDisplay').innerText = grandTotal.toFixed(2);
+        }
+    </script>
+    
+</body>
+
+{% endblock %}

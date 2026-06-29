@@ -82,6 +82,12 @@ urlpatterns = [
     path('pr_img/order/',views.order2,name='order2'),
     path('pr_img/others/',views.others2,name='others2'),
     path('all_img/',views.all_img,name='all_img'),
+
+    # Sales Bill & Invoice URLs
+    path('sales-bill/', views.sales_bill, name='sales_bill'),
+    path('ajax/get-scube-products/', views.get_scube_products, name='get_scube_products'),
+    path('invoice-history/', views.invoice_history, name='invoice_history'),
+    path('invoice-detail/<int:invoice_id>/', views.invoice_detail, name='invoice_detail'), # ഇത് പുതിയതായി ചേർത്തത്
     
 
 

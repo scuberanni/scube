@@ -1,0 +1,115 @@
+{% extends 'blank_layout.html' %}
+{% block content %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<div class="container mt-4 mb-5">
+    
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 border-bottom pb-3 gap-3">
+        <h2 class="text-primary m-0 fw-bold text-uppercase text-center text-md-start"><i class="bi bi-clock-history me-2"></i>Invoice History</h2>
+        <div class="d-flex flex-wrap gap-2 justify-content-center">
+            <a href="{% url 'sales_bill' %}" class="btn btn-dark shadow-sm rounded-pill fw-bold px-3"><i class="bi bi-receipt me-1"></i> New Bill</a>
+            <button onclick="downloadAsPNG()" class="btn btn-success shadow-sm rounded-pill fw-bold px-3"><i class="bi bi-download me-1"></i> Download PNG</button>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 mb-4 bg-light">
+        <div class="card-body p-3 p-md-4">
+            <form method="GET" action="" class="row g-3 align-items-end justify-content-center">
+                <div class="col-12 col-md-3">
+                    <label class="small fw-bold text-secondary mb-1">Start Date</label>
+                    <input type="date" name="start_date" class="form-control fw-bold border-primary" value="{{ start_date }}">
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="small fw-bold text-secondary mb-1">End Date</label>
+                    <input type="date" name="end_date" class="form-control fw-bold border-primary" value="{{ end_date }}">
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="small fw-bold text-secondary mb-1">Status</label>
+                    <select name="status" class="form-select fw-bold border-primary text-primary">
+                        <option value="">All Statuses</option>
+                        {% for st in statuses %}
+                            <option value="{{ st.0 }}" {% if status == st.0 %}selected{% endif %}>{{ st.1 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-3 d-flex gap-2 text-center mt-3 mt-md-0">
+                    <button type="submit" class="btn btn-primary fw-bold px-3 flex-grow-1"><i class="bi bi-filter"></i> Filter</button>
+                    <a href="{% url 'invoice_history' %}" class="btn btn-secondary fw-bold px-3"><i class="bi bi-arrow-clockwise"></i> Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-lg border-0 rounded-4" id="capture-area" style="background-color: #ffffff;">
+        <div class="card-body p-0">
+            <div class="d-none d-print-block p-3 text-center border-bottom mb-2 capture-header" style="display: none !important;">
+                <h3 class="fw-bold text-dark m-0">SCUBE PREMIUM FURNITURES</h3>
+                <p class="text-muted small m-0">Sales Report: {{ start_date|date:"d-m-Y" }} to {{ end_date|date:"d-m-Y" }}</p>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0 text-center">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="py-3">Date</th>
+                            <th>Invoice No</th>
+                            <th>Customer (Status)</th>
+                            <th>Total Amount (₹)</th>
+                            <th class="no-print-col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in invoices %}
+                        <tr>
+                            <td class="fw-bold">{{ inv.date|date:"d-m-Y" }}</td>
+                            <td class="fw-bold text-primary">{{ inv.invoice_number }}</td>
+                            <td><span class="badge bg-secondary px-3 py-1">{{ inv.customer_name|default:"-" }}</span></td>
+                            <td class="text-danger fw-bold fs-6">₹ {{ inv.grand_total }}</td>
+                            <td class="no-print-col">
+                                <a href="{% url 'invoice_detail' inv.id %}" class="btn btn-sm btn-outline-info rounded-pill fw-bold shadow-sm px-3"><i class="bi bi-eye-fill me-1"></i> View</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-muted py-5">
+                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>No invoices found for the selected dates/status.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function downloadAsPNG() {
+        // Show header specifically for the PNG capture
+        const header = document.querySelector('.capture-header');
+        header.style.setProperty('display', 'block', 'important');
+        
+        // Hide the action column temporarily
+        const noPrintCols = document.querySelectorAll('.no-print-col');
+        noPrintCols.forEach(col => col.style.display = 'none');
+
+        const captureArea = document.getElementById('capture-area');
+        
+        html2canvas(captureArea, {
+            scale: 2, // High resolution
+            backgroundColor: "#ffffff",
+        }).then(canvas => {
+            // Restore hidden elements
+            header.style.setProperty('display', 'none', 'important');
+            noPrintCols.forEach(col => col.style.display = '');
+
+            // Download the image
+            let link = document.createElement('a');
+            link.download = 'SCUBE_Sales_Report.png';
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        });
+    }
+</script>
+{% endblock %}
