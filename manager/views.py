@@ -1,6 +1,8 @@
 import re
 import datetime
 import json
+from decimal import Decimal
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.dateparse import parse_date
 from django.contrib import messages
@@ -8,14 +10,14 @@ from django.db.models import Sum, Q
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
-from decimal import Decimal
 
 from .forms import PrForm, OrderForm, PBPaidForm, SofaPaidForm
 from .models import (
     Scube_ss, orders, MaterialName, Material, 
     SofaProductionRecord, ProductionMaterialItem, 
     BoardColor, BoardMaterial, ProductItem, 
-    BoardProductionRecord, PB_Paid_Entry, Sofa_Paid_Entry,Invoice, InvoiceItem,
+    BoardProductionRecord, PB_Paid_Entry, Sofa_Paid_Entry,
+    Invoice, InvoiceItem, StockMaterialCategory, StockItem,
     Catogory_choice, status_choice
 )
 
@@ -23,18 +25,17 @@ from .models import (
 # 0. USER ACCESS CONTROL FUNCTIONS
 # ==============================================================================
 
-# അഡ്മിന് മാത്രമുള്ളവ (Superuser)
+# Admin only (Superuser)
 def is_admin(user):
     return user.is_authenticated and user.is_superuser
 
-# സോഫാ വർക്കർക്കും അഡ്മിനും ഉള്ളവ
+# Sofa Worker and Admin
 def is_sofa_worker_or_admin(user):
     return user.is_authenticated and (user.is_superuser or user.username == 'sofa_worker')
 
-# PB വർക്കർക്കും അഡ്മിനും ഉള്ളവ
+# PB Worker and Admin
 def is_pb_worker_or_admin(user):
     return user.is_authenticated and (user.is_superuser or user.username == 'pb_worker')
-
 
 # ==============================================================================
 # 1. PUBLIC VIEWS (No Login Required - For Customers)
@@ -68,8 +69,6 @@ def image_gallery(request, category):
             'is_all': False
         }
     return render(request, 'image_gallery.html', context)
-
-
 
 # NEW Category display functions
 def show_cupboard2(request):
@@ -107,7 +106,6 @@ def order2(request):
 def all_img(request):
     ls_data = Scube_ss.objects.all().order_by('Catogory')
     return render(request, 'all_products1.html', {'products': ls_data})
-
 
 # ==============================================================================
 # 2. SOFA WORKER VIEWS (Sofa Worker & Admin)
@@ -250,7 +248,7 @@ def edit_production(request, record_id):
         record.other_cost = float(request.POST.get('other_cost') or 0)
         record.wood_cost = float(request.POST.get('wood_cost') or 0)
         
-        # 🟢 സുരക്ഷാ നിയന്ത്രണം: അഡ്മിൻ ആണെങ്കിൽ മാത്രം wage_cost അപ്ഡേറ്റ് ചെയ്യും
+        # Security check: Only admin can update wage_cost
         if request.user.is_superuser:
             record.wage_cost = float(request.POST.get('wage_cost') or 0)
             
@@ -310,8 +308,7 @@ def delete_production(request, record_id):
         record.delete()
     return redirect('production_summary')
 
-
-# 🟢 Sofa Monthly Report (Worker can view & add payments)
+# Sofa Monthly Report (Worker can view & add payments)
 @user_passes_test(is_sofa_worker_or_admin)
 def sofa_wage_paid_report(request, year=None, month=None):
     today = datetime.date.today()
@@ -329,7 +326,7 @@ def sofa_wage_paid_report(request, year=None, month=None):
     
     if request.method == 'POST':
         if 'add_payment' in request.POST:
-            # 🟢 വർക്കർക്കും അഡ്മിനും പേയ്മെന്റ് ചേർക്കാം
+            # Worker and Admin can add payments
             form = SofaPaidForm(request.POST)
             if form.is_valid():
                 form.save()
@@ -360,7 +357,6 @@ def sofa_wage_paid_report(request, year=None, month=None):
         'payment_form': payment_form,
     }
     return render(request, 'sofa_monthly_wage_paid.html', context)
-
 
 # ==============================================================================
 # 3. PB WORKER VIEWS (PB Worker & Admin)
@@ -546,7 +542,7 @@ def edit_board_production(request, record_id):
         record.cl_material = request.POST.get('cl_material')
         record.cl_color = request.POST.get('cl_color')
         
-        # 🟢 സുരക്ഷാ നിയന്ത്രണം: അഡ്മിൻ ആണെങ്കിൽ മാത്രം cl_wage അപ്ഡേറ്റ് ചെയ്യും
+        # Security check: Only admin can update cl_wage
         if request.user.is_superuser:
             record.cl_wage = float(request.POST.get('cl_wage') or 0)
             
@@ -564,8 +560,7 @@ def delete_board_production(request, record_id):
         record.delete()
     return redirect(request.META.get('HTTP_REFERER', 'board_production_summary'))
 
-
-# 🟢 PB Monthly Report (Worker can view & add payments)
+# PB Monthly Report (Worker can view & add payments)
 @user_passes_test(is_pb_worker_or_admin)
 def wage_paid_report(request, year=None, month=None):
     today = datetime.date.today()
@@ -583,7 +578,7 @@ def wage_paid_report(request, year=None, month=None):
     
     if request.method == 'POST':
         if 'add_payment' in request.POST:
-            # 🟢 വർക്കർക്കും അഡ്മിനും പേയ്മെന്റ് ചേർക്കാം
+            # Worker and Admin can add payments
             form = PBPaidForm(request.POST)
             if form.is_valid():
                 form.save()
@@ -620,12 +615,11 @@ def wage_paid_report(request, year=None, month=None):
     }
     return render(request, 'monthly_wage_paid.html', context)
 
-
 # ==============================================================================
 # 4. SUPERUSER / ADMIN VIEWS (Admin Only)
 # ==============================================================================
 
-# 🟢 Payment Edit/Delete Functions (Strictly Admin Only)
+# Payment Edit/Delete Functions (Strictly Admin Only)
 @user_passes_test(is_admin)
 def edit_payment(request, payment_id):
     payment = get_object_or_404(PB_Paid_Entry, id=payment_id)
@@ -672,9 +666,9 @@ def delete_sofa_payment(request, payment_id):
         payment.delete()
     return redirect('sofa_wage_report', year=year, month=month)
 
-# ------------------------------------------------------------------------------
-# ബാക്കി എല്ലാ അഡ്മിൻ ഫംഗ്ഷനുകളും താഴെ
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# 5. GENERAL ADMIN FUNCTIONS
+# ==============================================================================
 
 @user_passes_test(is_admin)
 def admin(request):
@@ -950,20 +944,16 @@ def sales_reports(request):
         return render(request, 'sales_reports.html', {'PR_reports': P_rep})
     else:
         return render(request, 'sales_reports.html')
-    
-
-
 
 # ==============================================================================
-# 5. SALES BILL & INVOICE (Admin Only)
-# ==============================================================================
-
+# 6. SALES BILL & INVOICE
+# ==========================================
 
 @user_passes_test(is_admin)
 def sales_bill(request):
     if request.method == 'POST':
         date = request.POST.get('date')
-        cust_status = request.POST.get('customer_name') # ഇത് ഡ്രോപ്പ് ഡൗണിൽ നിന്നുള്ള സ്റ്റാറ്റസ് ആണ്
+        cust_status = request.POST.get('customer_name') # Status from dropdown
         
         last_inv = Invoice.objects.order_by('-id').first()
         if last_inv:
@@ -975,7 +965,7 @@ def sales_bill(request):
             invoice_number=inv_no, date=date, customer_name=cust_status
         )
         
-        # പുതിയ ഡിസൈനിലെ ഇൻപുട്ട് പേരുകൾ
+        # Input names from new design
         p_ids = request.POST.getlist('product_ids[]')
         qtys = request.POST.getlist('quantities[]')
         prices = request.POST.getlist('prices[]')
@@ -996,7 +986,7 @@ def sales_bill(request):
                     )
                     g_total += t
                     
-                    # 🟢 SCUBE മാസ്റ്റർ ടേബിൾ അപ്ഡേറ്റ് ചെയ്യുന്നു 
+                    # 🟢 Updating SCUBE master table
                     prod.status = cust_status     
                     prod.sl_date = date           
                     prod.prize = int(p)           
@@ -1011,7 +1001,7 @@ def sales_bill(request):
         
     categories = Catogory_choice
     statuses = status_choice  
-    # 🟢 SCUBE സ്റ്റാറ്റസ് ഉള്ളവ മാത്രം എടുത്ത് പേജിലേക്ക് നൽകുന്നു
+    # Fetching SCUBE status only for dropdown
     scube_products = Scube_ss.objects.filter(status='SCUBE').order_by('Catogory', 'name')
     
     return render(request, 'sales_bill.html', {
@@ -1022,16 +1012,15 @@ def sales_bill(request):
 
 @user_passes_test(is_admin)
 def get_scube_products(request):
-    # ഡ്രോപ്പ് ഡൗണിൽ കാണിക്കാൻ വേണ്ടി SCUBE സ്റ്റാറ്റസ് ഉള്ളവ മാത്രം എടുക്കുന്നു
     cat = request.GET.get('category')
     products = Scube_ss.objects.filter(Catogory=cat, status='SCUBE').values('id', 'name', 'code', 'prize')
     return JsonResponse({'products': list(products)})
 
-# 🟢 ഇൻവോയ്സ് ഹിസ്റ്ററി (ഫിൽറ്ററുകൾ സഹിതം)
+# 🟢 Invoice History (with filters)
 @user_passes_test(is_admin)
 def invoice_history(request):
     today = datetime.date.today()
-    # ഡിഫോൾട്ട് ആയി ഈ മാസത്തെ ആദ്യത്തെ തിയ്യതി മുതൽ ഇന്നത്തെ തിയ്യതി വരെ
+    # Default: First day of current month to today
     first_day_of_month = today.replace(day=1)
     
     start_date = request.GET.get('start_date') or first_day_of_month.strftime('%Y-%m-%d')
@@ -1054,9 +1043,101 @@ def invoice_history(request):
     }
     return render(request, 'invoice_history.html', context)
 
-# 🟢 ഇൻവോയ്സ് ഡീറ്റെയിൽ കാണാനുള്ള ഫംഗ്ഷൻ
+# 🟢 View Invoice Details
 @user_passes_test(is_admin)
 def invoice_detail(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     items = invoice.items.all()
     return render(request, 'invoice_detail.html', {'invoice': invoice, 'items': items})
+
+# ==============================================================================
+# 7. STOCK MANAGEMENT
+# ==============================================================================
+
+@user_passes_test(is_admin)
+def stock_management(request):
+    sofa_categories = StockMaterialCategory.objects.filter(material_type='SOFA')
+    pb_categories = StockMaterialCategory.objects.filter(material_type='PB')
+    
+    active_cat_id = request.GET.get('cat_id')
+    
+    if active_cat_id:
+        active_category = get_object_or_404(StockMaterialCategory, id=active_cat_id)
+    else:
+        active_category = sofa_categories.first() if sofa_categories.exists() else None
+
+    items = StockItem.objects.filter(material=active_category) if active_category else []
+    all_categories = StockMaterialCategory.objects.all()
+
+    context = {
+        'sofa_categories': sofa_categories,
+        'pb_categories': pb_categories,
+        'active_category': active_category,
+        'items': items,
+        'all_categories': all_categories,
+    }
+    return render(request, 'stock_management.html', context)
+
+@user_passes_test(is_admin)
+def add_stock_category(request):
+    if request.method == 'POST':
+        m_type = request.POST.get('material_type')
+        c_name = request.POST.get('category_name')
+        if m_type and c_name:
+            StockMaterialCategory.objects.create(material_type=m_type, category_name=c_name)
+            messages.success(request, 'Category Added Successfully!')
+    return redirect('stock_management')
+
+@user_passes_test(is_admin)
+def edit_stock_category(request, cat_id):
+    category = get_object_or_404(StockMaterialCategory, id=cat_id)
+    if request.method == 'POST':
+        category.category_name = request.POST.get('category_name')
+        category.save()
+        messages.success(request, 'Category Updated Successfully!')
+    return redirect(f"/stock-management/?cat_id={category.id}")
+
+@user_passes_test(is_admin)
+def add_stock_item(request):
+    if request.method == 'POST':
+        cat_id = request.POST.get('category_id')
+        category = get_object_or_404(StockMaterialCategory, id=cat_id)
+        
+        StockItem.objects.create(
+            material=category,
+            name=request.POST.get('name'),
+            color=request.POST.get('color'),
+            size=request.POST.get('size'),
+            prize=request.POST.get('prize', 0),
+            stock=request.POST.get('stock', 0),
+            image=request.FILES.get('image')
+        )
+        messages.success(request, 'Item Added Successfully!')
+        return redirect(f"/stock-management/?cat_id={cat_id}")
+    return redirect('stock_management')
+
+@user_passes_test(is_admin)
+def edit_stock_item(request, item_id):
+    item = get_object_or_404(StockItem, id=item_id)
+    if request.method == 'POST':
+        item.name = request.POST.get('name')
+        item.color = request.POST.get('color')
+        item.size = request.POST.get('size')
+        item.prize = request.POST.get('prize', 0)
+        item.stock = request.POST.get('stock', 0)
+        
+        if request.FILES.get('image'):
+            item.image = request.FILES.get('image')
+            
+        item.save()
+        messages.success(request, 'Item Updated Successfully!')
+    return redirect(f"/stock-management/?cat_id={item.material.id}")
+
+@user_passes_test(is_admin)
+def delete_stock_item(request, item_id):
+    item = get_object_or_404(StockItem, id=item_id)
+    cat_id = item.material.id
+    if request.method == 'POST':
+        item.delete()
+        messages.success(request, 'Item Deleted!')
+    return redirect(f"/stock-management/?cat_id={cat_id}")

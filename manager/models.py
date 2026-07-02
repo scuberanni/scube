@@ -4,12 +4,16 @@ from PIL import Image
 from django.core.files.uploadedfile import InMemoryUploadedFile
 import sys
 
+# ==========================================
+# CHOICES TUPLES
+# ==========================================
 status_choice = [ 
     ('SCUBE', 'SCUBE'),
     ('THIRUVALLA', 'THIRUVALLA'),
-    ('SALE', 'SALE'),
+    ('GALLERY', 'GALLERY'),
     ('S-CUBE-DT', 'S-CUBE-DT'),
-    ('ORDER', 'ORDER')
+    ('ORDER', 'ORDER'),
+    ('WORKSHOP', 'WORKSHOP') 
 ]
 
 new_choice = [ 
@@ -27,6 +31,9 @@ Catogory_choice = [
     ('ORDER', 'ORDER'),
 ]
 
+# ==========================================
+# 1. CORE MODELS
+# ==========================================
 class Scube_ss(models.Model):
     code = models.CharField(max_length=50, null=True)
     Catogory = models.CharField(choices=Catogory_choice, max_length=50, null=True)
@@ -40,6 +47,7 @@ class Scube_ss(models.Model):
     status = models.CharField(choices=status_choice, max_length=50, null=True)
     image = models.ImageField(upload_to='images/', blank=True)
     new_pr = models.CharField(choices=new_choice, max_length=50, null=True, blank=True)
+    
     GALLERY_STATUS_CHOICES = [
         ('PENDING', 'PENDING'),
         ('SHOW', 'SHOW'),
@@ -48,7 +56,6 @@ class Scube_ss(models.Model):
     gallery_status = models.CharField(max_length=20, choices=GALLERY_STATUS_CHOICES, default='PENDING')
     sort_order = models.IntegerField(default=0)
 
-    # models.py ലെ class Scube_ss ഉള്ളിൽ ചേർക്കേണ്ടത്:
     @property
     def encoded_prize(self):
         if not self.prize:
@@ -59,13 +66,10 @@ class Scube_ss(models.Model):
         except ValueError:
             return "SC00ST26"
 
-        # ആദ്യത്തെ അക്കങ്ങൾ എടുക്കുന്നു (ഉദാ: 22850 ൽ നിന്ന് 22)
         thousands = p // 1000
-        # ബാക്കി വരുന്ന സംഖ്യ എടുക്കുന്നു (ഉദാ: 22850 ൽ നിന്ന് 850)
         hundreds = p % 1000
-
-        # സംഖ്യയുടെ റേഞ്ച് അനുസരിച്ച് അക്ഷരങ്ങൾ നൽകുന്നു (1 മുതൽ 999 വരെ)
         letter_code = ""
+        
         if 1 <= hundreds <= 100:
             letter_code = "A"
         elif 101 <= hundreds <= 200:
@@ -82,10 +86,9 @@ class Scube_ss(models.Model):
             letter_code = "EB"
         elif 701 <= hundreds <= 800:
             letter_code = "EC"
-        elif 801 <= hundreds <= 999:  # 801 മുതൽ 999 വരെ ED വരും
+        elif 801 <= hundreds <= 999:  
             letter_code = "ED"
 
-        # ഫൈനൽ കോഡ് നിർമ്മിക്കുന്നു
         return f"SC{thousands}{letter_code}ST26"
 
     def __str__(self):
@@ -100,7 +103,10 @@ class orders(models.Model):
 
     def __str__(self):
         return str(self.name)
-    
+
+# ==========================================
+# 2. SOFA PRODUCTION & MASTERS
+# ==========================================
 class MaterialName(models.Model):
     name = models.CharField(max_length=100, unique=True) 
 
@@ -146,7 +152,10 @@ class ProductionMaterialItem(models.Model):
 
     def __str__(self):
         return f"{self.material_name} for {self.production.sofa_code}"
-    
+
+# ==========================================
+# 3. BOARD (PB) PRODUCTION & MASTERS
+# ==========================================
 class BoardColor(models.Model):
     color = models.CharField(max_length=100, unique=True)
 
@@ -224,6 +233,9 @@ class BoardProductionRecord(models.Model):
     def __str__(self):
         return str(self.cl_name)
 
+# ==========================================
+# 4. PAYMENT ENTRIES
+# ==========================================
 class PB_Paid_Entry(models.Model):
     PAYMENT_MODE_CHOICES = [
         ('CASH', 'CASH'),
@@ -252,11 +264,13 @@ class Sofa_Paid_Entry(models.Model):
     def __str__(self):
         return f"{self.date} - {self.amount} ({self.payment_mode})"
     
-# --- INVOICE MODELS ---
+# ==========================================
+# 5. INVOICE MODELS
+# ==========================================
 class Invoice(models.Model):
     invoice_number = models.CharField(max_length=50, unique=True)
     date = models.DateField()
-    customer_name = models.CharField(max_length=100, null=True, blank=True) # ഇത് സ്റ്റാറ്റസ് സേവ് ചെയ്യാനാണ്
+    customer_name = models.CharField(max_length=100, null=True, blank=True)
     grand_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     def __str__(self):
@@ -269,3 +283,31 @@ class InvoiceItem(models.Model):
     quantity = models.IntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+# ==========================================
+# 6. STOCK MANAGEMENT MODELS
+# ==========================================
+class StockMaterialCategory(models.Model):
+    MATERIAL_TYPES = [
+        ('SOFA', 'SOFA MATERIAL'),
+        ('PB', 'PB MATERIAL'),
+    ]
+    
+    material_type = models.CharField(max_length=20, choices=MATERIAL_TYPES, verbose_name="Material Type") 
+    category_name = models.CharField(max_length=100, verbose_name="Category Name") 
+
+    def __str__(self):
+        return f"{self.get_material_type_display()} - {self.category_name}"
+
+class StockItem(models.Model):
+    material = models.ForeignKey(StockMaterialCategory, on_delete=models.CASCADE, related_name='stock_items', verbose_name="Select Material")
+    
+    name = models.CharField(max_length=150, verbose_name="Item Name")
+    color = models.CharField(max_length=50, null=True, blank=True, verbose_name="Color")
+    size = models.CharField(max_length=50, null=True, blank=True, verbose_name="Size")
+    prize = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Prize")
+    stock = models.IntegerField(default=0, verbose_name="Stock Quantity")
+    image = models.ImageField(upload_to='stock_images/', null=True, blank=True, verbose_name="Image")
+
+    def __str__(self):
+        return self.name
