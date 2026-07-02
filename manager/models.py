@@ -309,5 +309,35 @@ class StockItem(models.Model):
     stock = models.IntegerField(default=0, verbose_name="Stock Quantity")
     image = models.ImageField(upload_to='stock_images/', null=True, blank=True, verbose_name="Image")
 
+    def save(self, *args, **kwargs):
+        # ഇമേജ് ഉണ്ടെങ്കിൽ മാത്രം കംപ്രസ് ചെയ്യുക
+        if self.image and not getattr(self, '_image_compressed', False):
+            img = Image.open(self.image)
+            output = BytesIO()
+
+            # RGBA/P മോഡ് ആണെങ്കിൽ RGB-ലേക്ക് മാറ്റുക
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+
+            # കംപ്രഷൻ ക്വാളിറ്റി സെറ്റ് ചെയ്യുക (85-ൽ തുടങ്ങി കുറയ്ക്കാം)
+            quality = 85
+            img.save(output, format='JPEG', quality=quality)
+            
+            # ഫയൽ സൈസ് 150KB-ൽ താഴെയാക്കാൻ ലൂപ്പ് ചെയ്യുന്നു
+            while output.tell() > 150 * 1024 and quality > 10:
+                output.seek(0)
+                output.truncate()
+                quality -= 5
+                img.save(output, format='JPEG', quality=quality)
+
+            output.seek(0)
+            self.image = InMemoryUploadedFile(
+                output, 'ImageField', f"{self.image.name.split('.')[0]}.jpg",
+                'image/jpeg', sys.getsizeof(output), None
+            )
+            self._image_compressed = True
+
+        super(StockItem, self).save(*args, **kwargs)
+
     def __str__(self):
         return self.name
