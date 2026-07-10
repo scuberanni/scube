@@ -1,6 +1,6 @@
 from django.db import models
 from io import BytesIO
-from PIL import Image
+from PIL import Image, ImageOps  # ImageOps ഇമ്പോർട്ട് ചെയ്തു (റൊട്ടേഷൻ ശരിയാക്കാൻ)
 from django.core.files.uploadedfile import InMemoryUploadedFile
 import sys
 
@@ -206,20 +206,31 @@ class BoardProductionRecord(models.Model):
             else:
                 self.cl_code = "SCPB_01"
 
+        # 🟢 BoardProductionRecord Image Compression
         if self.cl_image and not getattr(self, '_image_compressed', False):
             img = Image.open(self.cl_image)
-            output = BytesIO()
+            
+            # റൊട്ടേഷൻ പ്രശ്നം പരിഹരിക്കാൻ ImageOps ഉപയോഗിക്കുന്നു
+            img = ImageOps.exif_transpose(img)
 
             if img.mode in ("RGBA", "P"):
                 img = img.convert("RGB")
 
+            # ക്ലാരിറ്റി നിലനിർത്താൻ റെസല്യൂഷൻ കുറയ്ക്കുന്നു (max 1200px)
+            img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
+            
+            output = BytesIO()
             quality = 85
-            img.save(output, format='JPEG', quality=quality)
-            while output.tell() > 150 * 1024 and quality > 10:
+            
+            # Optimize ഓപ്ഷൻ കൂടി നൽകി സേവ് ചെയ്യുന്നു
+            img.save(output, format='JPEG', quality=quality, optimize=True)
+            
+            # ക്ലാരിറ്റി വളരെ മോശമാകാതിരിക്കാൻ മിനിമം ക്വാളിറ്റി 50 ആയി നിലനിർത്തുന്നു
+            while output.tell() > 180 * 1024 and quality > 50:
                 output.seek(0)
                 output.truncate()
                 quality -= 5
-                img.save(output, format='JPEG', quality=quality)
+                img.save(output, format='JPEG', quality=quality, optimize=True)
 
             output.seek(0)
             self.cl_image = InMemoryUploadedFile(
@@ -310,25 +321,31 @@ class StockItem(models.Model):
     image = models.ImageField(upload_to='stock_images/', null=True, blank=True, verbose_name="Image")
 
     def save(self, *args, **kwargs):
-        # ഇമേജ് ഉണ്ടെങ്കിൽ മാത്രം കംപ്രസ് ചെയ്യുക
+        # 🟢 StockItem Image Compression
         if self.image and not getattr(self, '_image_compressed', False):
             img = Image.open(self.image)
-            output = BytesIO()
+            
+            # റൊട്ടേഷൻ പ്രശ്നം പരിഹരിക്കാൻ ImageOps ഉപയോഗിക്കുന്നു
+            img = ImageOps.exif_transpose(img)
 
-            # RGBA/P മോഡ് ആണെങ്കിൽ RGB-ലേക്ക് മാറ്റുക
             if img.mode in ("RGBA", "P"):
                 img = img.convert("RGB")
 
-            # കംപ്രഷൻ ക്വാളിറ്റി സെറ്റ് ചെയ്യുക (85-ൽ തുടങ്ങി കുറയ്ക്കാം)
-            quality = 85
-            img.save(output, format='JPEG', quality=quality)
+            # ക്ലാരിറ്റി നിലനിർത്താൻ റെസല്യൂഷൻ കുറയ്ക്കുന്നു (max 1200px)
+            img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
             
-            # ഫയൽ സൈസ് 150KB-ൽ താഴെയാക്കാൻ ലൂപ്പ് ചെയ്യുന്നു
-            while output.tell() > 150 * 1024 and quality > 10:
+            output = BytesIO()
+            quality = 85
+            
+            # Optimize ഓപ്ഷൻ കൂടി നൽകി സേവ് ചെയ്യുന്നു
+            img.save(output, format='JPEG', quality=quality, optimize=True)
+            
+            # ക്ലാരിറ്റി വളരെ മോശമാകാതിരിക്കാൻ മിനിമം ക്വാളിറ്റി 50 ആയി നിലനിർത്തുന്നു
+            while output.tell() > 180 * 1024 and quality > 50:
                 output.seek(0)
                 output.truncate()
                 quality -= 5
-                img.save(output, format='JPEG', quality=quality)
+                img.save(output, format='JPEG', quality=quality, optimize=True)
 
             output.seek(0)
             self.image = InMemoryUploadedFile(
