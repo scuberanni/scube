@@ -88,6 +88,8 @@ urlpatterns = [
     path('change-gallery-status/<int:item_id>/<str:status>/', views.change_gallery_status, name='change_gallery_status'),
     path('bulk-update-gallery-status/', views.bulk_update_gallery_status, name='bulk_update_gallery_status'),
     path('update-sort-order/', views.update_sort_order, name='update_sort_order'),
+
+    path('delete-gallery-item/<int:item_id>/', views.delete_gallery_item, name='delete_gallery_item'),
     
     # Category Filter Views
     path('show_cupboard/', views.show_cupboard, name='show_cupboard'),

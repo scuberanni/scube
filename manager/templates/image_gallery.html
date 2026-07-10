@@ -45,9 +45,8 @@
 
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
             <p class="text-muted small fw-bold m-0 d-none d-lg-block">
-                <i class="bi bi-info-circle"></i> Click multiple images to select them, then drag to reorder. Check boxes to bulk Hide/Show.
+                <i class="bi bi-info-circle"></i> Click multiple images to select them, then drag to reorder. Check boxes to bulk Hide/Show/Delete.
             </p>
-            
             
             <div class="form-check ms-auto bg-white p-2 px-3 rounded-pill border shadow-sm">
                 <input class="form-check-input border-dark" type="checkbox" id="selectAllCheck" onclick="toggleSelectAll()" style="cursor: pointer; width: 1.2rem; height: 1.2rem;">
@@ -55,8 +54,6 @@
                     Select All Images
                 </label>
             </div> 
-
-            <!-- End Left Column -->
         </div>
 
         {% if is_all %}
@@ -76,7 +73,10 @@
                                     <div class="gallery-info bg-light">
                                         <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
                                         <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                                        <div class="mt-2"><a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Approve</a></div>
+                                        <div class="mt-2 d-flex justify-content-center gap-1">
+                                            <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Approve</a>
+                                            <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-outline-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -96,7 +96,10 @@
                                     <div class="gallery-info bg-white">
                                         <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
                                         <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                                        <div class="mt-2"><a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-outline-danger fw-bold py-0">Hide</a></div>
+                                        <div class="mt-2 d-flex justify-content-center gap-1">
+                                            <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-outline-danger fw-bold py-0">Hide</a>
+                                            <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -116,7 +119,10 @@
                                     <div class="gallery-info bg-white">
                                         <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
                                         <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                                        <div class="mt-2"><a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Show</a></div>
+                                        <div class="mt-2 d-flex justify-content-center gap-1">
+                                            <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Show</a>
+                                            <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -139,9 +145,10 @@
                             <div class="gallery-info bg-light border-top">
                                 <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
                                 <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                                <div class="mt-2 d-flex justify-content-center gap-2">
-                                    <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold">Approve</a>
-                                    <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-danger fw-bold">Hide</a>
+                                <div class="mt-2 d-flex justify-content-center gap-1">
+                                    <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Approve</a>
+                                    <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-outline-danger fw-bold py-0">Hide</a>
+                                    <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
                                 </div>
                             </div>
                         </div>
@@ -161,7 +168,10 @@
                         <div class="gallery-info bg-white">
                             <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
                             <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                            <div class="mt-2 text-end"><a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-outline-danger fw-bold">Hide</a></div>
+                            <div class="mt-2 d-flex justify-content-center gap-1">
+                                <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-outline-danger fw-bold py-0">Hide</a>
+                                <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -180,7 +190,10 @@
                             <div class="gallery-info bg-white">
                                 <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
                                 <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                                <div class="mt-2"><a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold">Show</a></div>
+                                <div class="mt-2 d-flex justify-content-center gap-1">
+                                    <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Show</a>
+                                    <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -190,13 +203,16 @@
         {% endif %}
     </div>
 
+    <!-- BULK ACTION BAR -->
     <div id="bulkActionBar" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 p-3 bg-dark border border-secondary rounded-pill shadow-lg d-none d-flex align-items-center gap-3" style="z-index: 1060;">
         <span class="text-white fw-bold"><span id="selCount" class="text-warning fs-5">0</span> Selected</span>
         <form id="bulkForm" method="POST" action="{% url 'bulk_update_gallery_status' %}" class="m-0 p-0">
             {% csrf_token %}
             <input type="hidden" name="action" id="bulkActionVal" value="">
             <button type="button" class="btn btn-success btn-sm rounded-pill fw-bold px-3 shadow" onclick="submitBulk('SHOW')"><i class="bi bi-eye me-1"></i> Show</button>
-            <button type="button" class="btn btn-danger btn-sm rounded-pill fw-bold px-3 shadow" onclick="submitBulk('UNSHOW')"><i class="bi bi-eye-slash me-1"></i> Hide</button>
+            <button type="button" class="btn btn-outline-light btn-sm rounded-pill fw-bold px-3 shadow" onclick="submitBulk('UNSHOW')"><i class="bi bi-eye-slash me-1"></i> Hide</button>
+            <div class="vr bg-light opacity-50 mx-1" style="width: 2px;"></div>
+            <button type="button" class="btn btn-danger btn-sm rounded-pill fw-bold px-3 shadow" onclick="submitBulk('DELETE')"><i class="bi bi-trash me-1"></i> Delete</button>
         </form>
     </div>
 
@@ -242,7 +258,6 @@
                 bar.classList.add('d-none');
             }
 
-            // Update Select All Checkbox state if user manually checks/unchecks items
             if(selectAllBox && allChecks.length > 0) {
                 selectAllBox.checked = (checked.length === allChecks.length);
             }
@@ -251,10 +266,17 @@
         function submitBulk(action) {
             let checked = document.querySelectorAll('.bulk-check:checked');
             if(checked.length === 0) return;
-            
+
+            if(action === 'DELETE' && !confirm("Are you sure? This will delete the items and their images.")) {
+            return;
+            }
+
             let form = document.getElementById('bulkForm');
             document.getElementById('bulkActionVal').value = action;
-            
+
+            // പഴയ hidden inputs കളയുക
+            form.querySelectorAll('input[name="item_ids"]').forEach(el => el.remove());
+
             checked.forEach(chk => {
                 let input = document.createElement('input');
                 input.type = 'hidden';
@@ -263,6 +285,12 @@
                 form.appendChild(input);
             });
             form.submit();
+        }
+
+        function submitBulkDelete() {
+            if(confirm("Are you sure you want to permanently delete the selected images? This action cannot be undone.")) {
+                submitBulk('DELETE');
+            }
         }
 
         // --- 2. DRAG AND DROP LOGIC ---

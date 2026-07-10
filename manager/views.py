@@ -70,6 +70,32 @@ def image_gallery(request, category):
         }
     return render(request, 'image_gallery.html', context)
 
+@user_passes_test(is_admin)
+def bulk_update_gallery_status(request):
+    if request.method == 'POST':
+        action = request.POST.get('action') 
+        item_ids = request.POST.getlist('item_ids')
+        
+        # ഡിബഗ്ഗിങ്ങിനായി ആക്ഷൻ പ്രിന്റ് ചെയ്തു നോക്കാം (Console-ൽ കാണാം)
+        print(f"Action: {action}, Items: {item_ids}")
+        
+        if item_ids:
+            if action in ['SHOW', 'UNSHOW']:
+                Scube_ss.objects.filter(id__in=item_ids).update(gallery_status=action)
+            elif action == 'DELETE':
+                # Django-cleanup ഉള്ളതുകൊണ്ട് ഡിലീറ്റ് ചെയ്താൽ ഫയലും പോകും
+                Scube_ss.objects.filter(id__in=item_ids).delete()
+                
+    return redirect(request.META.get('HTTP_REFERER', 'image_categories'))
+# 🟢 2. Single Image Delete
+@user_passes_test(is_admin)
+def delete_gallery_item(request, item_id):
+    item = get_object_or_404(Scube_ss, id=item_id)
+    # 🌟 ഇമേജ് മാത്രം ഡിലീറ്റ് ചെയ്യുന്നു 🌟
+    if item.image:
+        item.image.delete(save=True) 
+    return redirect(request.META.get('HTTP_REFERER', 'image_categories'))
+
 # NEW Category display functions
 def show_cupboard2(request):
     ls_data = Scube_ss.objects.filter(Catogory="CUPBOARD", new_pr="NEW").order_by('size')
@@ -1141,3 +1167,4 @@ def delete_stock_item(request, item_id):
         item.delete()
         messages.success(request, 'Item Deleted!')
     return redirect(f"/stock-management/?cat_id={cat_id}")
+
