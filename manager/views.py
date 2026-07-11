@@ -70,30 +70,57 @@ def image_gallery(request, category):
         }
     return render(request, 'image_gallery.html', context)
 
+# 🟢 1. Bulk Update & Intelligent Image Delete
 @user_passes_test(is_admin)
 def bulk_update_gallery_status(request):
     if request.method == 'POST':
         action = request.POST.get('action') 
-        item_ids = request.POST.getlist('item_ids')
-        
-        # ഡിബഗ്ഗിങ്ങിനായി ആക്ഷൻ പ്രിന്റ് ചെയ്തു നോക്കാം (Console-ൽ കാണാം)
-        print(f"Action: {action}, Items: {item_ids}")
+        item_ids = request.POST.getlist('item_ids') 
         
         if item_ids:
             if action in ['SHOW', 'UNSHOW']:
                 Scube_ss.objects.filter(id__in=item_ids).update(gallery_status=action)
             elif action == 'DELETE':
-                # Django-cleanup ഉള്ളതുകൊണ്ട് ഡിലീറ്റ് ചെയ്താൽ ഫയലും പോകും
-                Scube_ss.objects.filter(id__in=item_ids).delete()
+                items = Scube_ss.objects.filter(id__in=item_ids)
                 
+                for item in items:
+                    if item.image:
+                        image_name = item.image.name
+                        
+                        # ഈ ഇമേജ് വേറെ ഏതെങ്കിലും കാർഡിൽ ഉപയോഗിച്ചിട്ടുണ്ടോ എന്ന് പരിശോധിക്കുന്നു
+                        is_shared = Scube_ss.objects.filter(image=image_name).exclude(id=item.id).exists()
+                        
+                        if is_shared:
+                            # 🌟 ഇമേജ് ഒന്നിലധികം കാർഡുകളിൽ ഉണ്ടെങ്കിൽ: 
+                            # ഫയൽ ഡിലീറ്റ് ചെയ്യില്ല, പകരം ഈ കാർഡിലെ ഫയൽ പാത്ത് മാത്രം 'None' ആക്കുന്നു.
+                            item.image = None
+                            item.save()
+                        else:
+                            # 🌟 ഇമേജ് ഈ കാർഡിൽ മാത്രമേ ഉള്ളൂ എങ്കിൽ: 
+                            # ഡാറ്റാബേസിൽ നിന്ന് പാത്ത് മാറ്റുകയും, സ്റ്റോറേജിൽ നിന്ന് ഫയൽ പൂർണ്ണമായി ഡിലീറ്റ് ചെയ്യുകയും ചെയ്യുന്നു.
+                            item.image.delete(save=True)
+                            
     return redirect(request.META.get('HTTP_REFERER', 'image_categories'))
-# 🟢 2. Single Image Delete
+
+# 🟢 2. Single Image Intelligent Delete
 @user_passes_test(is_admin)
 def delete_gallery_item(request, item_id):
     item = get_object_or_404(Scube_ss, id=item_id)
-    # 🌟 ഇമേജ് മാത്രം ഡിലീറ്റ് ചെയ്യുന്നു 🌟
+    
     if item.image:
-        item.image.delete(save=True) 
+        image_name = item.image.name
+        
+        # ഈ ഇമേജ് വേറെ ഏതെങ്കിലും കാർഡിൽ ഉണ്ടോ എന്ന് നോക്കുന്നു
+        is_shared = Scube_ss.objects.filter(image=image_name).exclude(id=item.id).exists()
+        
+        if is_shared:
+            # മറ്റ് കാർഡുകളിൽ ഉണ്ടെങ്കിൽ ഈ കാർഡിൽ നിന്ന് മാത്രം ഒഴിവാക്കുന്നു (സ്റ്റോറേജിൽ നിന്ന് കളയില്ല)
+            item.image = None
+            item.save()
+        else:
+            # ഇതിൽ മാത്രമേ ഉള്ളൂ എങ്കിൽ സ്റ്റോറേജിൽ നിന്നും പൂർണ്ണമായി ഡിലീറ്റ് ചെയ്യുന്നു
+            item.image.delete(save=True) 
+            
     return redirect(request.META.get('HTTP_REFERER', 'image_categories'))
 
 # NEW Category display functions

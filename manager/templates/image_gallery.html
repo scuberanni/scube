@@ -28,6 +28,17 @@
         cursor: pointer;
         box-shadow: 0 2px 5px rgba(0,0,0,0.3);
     }
+
+    /* 🟢 🔵 Status Dots Styling */
+    .status-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .dot-scube { background-color: #55d045; } /* Green for SCUBE */
+    .dot-new { background-color: #33b5e5; } /* Light Blue for NEW */
 </style>
 
 <body class="bg-light">
@@ -73,9 +84,15 @@
                                     <div class="gallery-info bg-light">
                                         <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
                                         <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                                        <div class="mt-2 d-flex justify-content-center gap-1">
+                                        <div class="mt-2 d-flex justify-content-center align-items-center gap-1">
                                             <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Approve</a>
                                             <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-outline-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
+                                            
+                                            <!-- Status Dots -->
+                                            <div class="d-flex align-items-center ms-2 gap-1">
+                                                {% if item.status == 'SCUBE' %}<div class="status-dot dot-scube" title="SCUBE"></div>{% endif %}
+                                                {% if item.new_pr == 'NEW' %}<div class="status-dot dot-new" title="NEW"></div>{% endif %}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -96,9 +113,15 @@
                                     <div class="gallery-info bg-white">
                                         <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
                                         <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                                        <div class="mt-2 d-flex justify-content-center gap-1">
+                                        <div class="mt-2 d-flex justify-content-center align-items-center gap-1">
                                             <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-outline-danger fw-bold py-0">Hide</a>
                                             <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
+                                            
+                                            <!-- Status Dots -->
+                                            <div class="d-flex align-items-center ms-2 gap-1">
+                                                {% if item.status == 'SCUBE' %}<div class="status-dot dot-scube" title="SCUBE"></div>{% endif %}
+                                                {% if item.new_pr == 'NEW' %}<div class="status-dot dot-new" title="NEW"></div>{% endif %}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -119,9 +142,15 @@
                                     <div class="gallery-info bg-white">
                                         <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
                                         <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                                        <div class="mt-2 d-flex justify-content-center gap-1">
+                                        <div class="mt-2 d-flex justify-content-center align-items-center gap-1">
                                             <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Show</a>
                                             <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
+                                            
+                                            <!-- Status Dots -->
+                                            <div class="d-flex align-items-center ms-2 gap-1">
+                                                {% if item.status == 'SCUBE' %}<div class="status-dot dot-scube" title="SCUBE"></div>{% endif %}
+                                                {% if item.new_pr == 'NEW' %}<div class="status-dot dot-new" title="NEW"></div>{% endif %}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -145,10 +174,16 @@
                             <div class="gallery-info bg-light border-top">
                                 <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
                                 <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                                <div class="mt-2 d-flex justify-content-center gap-1">
+                                <div class="mt-2 d-flex justify-content-center align-items-center gap-1">
                                     <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Approve</a>
                                     <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-outline-danger fw-bold py-0">Hide</a>
                                     <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
+                                    
+                                    <!-- Status Dots -->
+                                    <div class="d-flex align-items-center ms-1 gap-1">
+                                        {% if item.status == 'SCUBE' %}<div class="status-dot dot-scube" title="SCUBE"></div>{% endif %}
+                                        {% if item.new_pr == 'NEW' %}<div class="status-dot dot-new" title="NEW"></div>{% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -168,9 +203,15 @@
                         <div class="gallery-info bg-white">
                             <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
                             <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                            <div class="mt-2 d-flex justify-content-center gap-1">
+                            <div class="mt-2 d-flex justify-content-center align-items-center gap-1">
                                 <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-outline-danger fw-bold py-0">Hide</a>
                                 <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
+                                
+                                <!-- Status Dots -->
+                                <div class="d-flex align-items-center ms-2 gap-1">
+                                    {% if item.status == 'SCUBE' %}<div class="status-dot dot-scube" title="SCUBE"></div>{% endif %}
+                                    {% if item.new_pr == 'NEW' %}<div class="status-dot dot-new" title="NEW"></div>{% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -190,9 +231,15 @@
                             <div class="gallery-info bg-white">
                                 <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
                                 <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                                <div class="mt-2 d-flex justify-content-center gap-1">
+                                <div class="mt-2 d-flex justify-content-center align-items-center gap-1">
                                     <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Show</a>
                                     <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
+                                    
+                                    <!-- Status Dots -->
+                                    <div class="d-flex align-items-center ms-2 gap-1">
+                                        {% if item.status == 'SCUBE' %}<div class="status-dot dot-scube" title="SCUBE"></div>{% endif %}
+                                        {% if item.new_pr == 'NEW' %}<div class="status-dot dot-new" title="NEW"></div>{% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -212,6 +259,7 @@
             <button type="button" class="btn btn-success btn-sm rounded-pill fw-bold px-3 shadow" onclick="submitBulk('SHOW')"><i class="bi bi-eye me-1"></i> Show</button>
             <button type="button" class="btn btn-outline-light btn-sm rounded-pill fw-bold px-3 shadow" onclick="submitBulk('UNSHOW')"><i class="bi bi-eye-slash me-1"></i> Hide</button>
             <div class="vr bg-light opacity-50 mx-1" style="width: 2px;"></div>
+            <!-- ഇവിടെ 'submitBulkDelete' എന്നതിന് പകരം 'submitBulk' തന്നെ ഉപയോഗിക്കുക -->
             <button type="button" class="btn btn-danger btn-sm rounded-pill fw-bold px-3 shadow" onclick="submitBulk('DELETE')"><i class="bi bi-trash me-1"></i> Delete</button>
         </form>
     </div>
@@ -265,10 +313,15 @@
 
         function submitBulk(action) {
             let checked = document.querySelectorAll('.bulk-check:checked');
-            if(checked.length === 0) return;
+            
+            if(checked.length === 0) {
+                alert("Please select at least one image.");
+                return;
+            }
 
-            if(action === 'DELETE' && !confirm("Are you sure? This will delete the items and their images.")) {
-            return;
+            if(action === 'DELETE') {
+                let confirmDelete = confirm("Are you sure? This will delete the selected items and their images.");
+                if(!confirmDelete) return; 
             }
 
             let form = document.getElementById('bulkForm');
@@ -284,13 +337,8 @@
                 input.value = chk.value;
                 form.appendChild(input);
             });
-            form.submit();
-        }
-
-        function submitBulkDelete() {
-            if(confirm("Are you sure you want to permanently delete the selected images? This action cannot be undone.")) {
-                submitBulk('DELETE');
-            }
+            
+            form.submit(); // ഈ ലൈൻ ആണ് ഫോം സെർവറിലേക്ക് അയക്കുന്നത്
         }
 
         // --- 2. DRAG AND DROP LOGIC ---
@@ -364,4 +412,4 @@
         }
     </script>
 </body>
-{% endblock %}
+{% endblock %} 
