@@ -90,6 +90,7 @@ urlpatterns = [
     path('update-sort-order/', views.update_sort_order, name='update_sort_order'),
 
     path('delete-gallery-item/<int:item_id>/', views.delete_gallery_item, name='delete_gallery_item'),
+    path('bulk-delete-gallery-items/', views.bulk_delete_gallery_items, name='bulk_delete_gallery_items'), # 🌟 പുതിയ URL
     
     # Category Filter Views
     path('show_cupboard/', views.show_cupboard, name='show_cupboard'),

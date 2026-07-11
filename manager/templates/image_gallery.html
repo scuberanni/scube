@@ -9,7 +9,7 @@
     .gallery-item { position: relative; overflow: hidden; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.2s ease; background-color: #fff; margin-bottom: 20px;}
     .gallery-item:hover { box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
     .gallery-img { width: 100%; height: 250px; object-fit: contain; background-color: #ffffff; border-bottom: 3px solid #0d6efd; }
-    .gallery-info { padding: 10px; text-align: center; }
+    .gallery-info { padding: 15px 10px; text-align: center; }
     .viewer-btn { width: 50px; height: 50px; opacity: 0.6; transition: opacity 0.3s ease; z-index: 1055; }
     .viewer-btn:hover { opacity: 1; }
     
@@ -31,8 +31,8 @@
 
     /* 🟢 🔵 Status Dots Styling */
     .status-dot {
-        width: 14px;
-        height: 14px;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
         display: inline-block;
         box-shadow: 0 1px 3px rgba(0,0,0,0.2);
@@ -80,11 +80,13 @@
                                 <div class="gallery-item">
                                     <input type="checkbox" class="form-check-input position-absolute m-2 z-3 bulk-check" value="{{ item.id }}" onclick="event.stopPropagation(); updateBulkBar();">
                                     <span class="badge bg-dark position-absolute top-0 end-0 m-2 z-1 shadow-sm sl-badge">#{{ forloop.counter }}</span>
-                                    <img src="{{ item.image.url }}" class="gallery-img" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
-                                    <div class="gallery-info bg-light">
-                                        <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
-                                        <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                                        <div class="mt-2 d-flex justify-content-center align-items-center gap-1">
+                                    
+                                    <img src="{% if item.image %}{{ item.image.url }}{% endif %}" class="gallery-img border-warning" alt="{{ item.name }}" onerror="this.onerror=null;this.src='/static/default_image.jpg';" onclick="openViewer({{ item.id }})">
+                                    
+                                    <div class="gallery-info bg-white border-top border-3 border-warning">
+                                        <h6 class="fw-bold text-dark text-truncate text-uppercase">{{ item.name }}</h6>
+                                        <span class="badge bg-secondary mb-2 rounded-pill px-3">{{ item.encoded_prize }}</span>
+                                        <div class="d-flex justify-content-center align-items-center gap-1">
                                             <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Approve</a>
                                             <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-outline-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
                                             
@@ -109,12 +111,14 @@
                                 <div class="gallery-item">
                                     <input type="checkbox" class="form-check-input position-absolute m-2 z-3 bulk-check" value="{{ item.id }}" onclick="event.stopPropagation(); updateBulkBar();">
                                     <span class="badge bg-dark position-absolute top-0 end-0 m-2 z-1 shadow-sm sl-badge">#{{ forloop.counter }}</span>
-                                    <img src="{{ item.image.url }}" class="gallery-img border-success" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
-                                    <div class="gallery-info bg-white">
-                                        <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
-                                        <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                                        <div class="mt-2 d-flex justify-content-center align-items-center gap-1">
-                                            <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-outline-danger fw-bold py-0">Hide</a>
+                                    
+                                    <img src="{% if item.image %}{{ item.image.url }}{% endif %}" class="gallery-img border-success" alt="{{ item.name }}" onerror="this.onerror=null;this.src='/static/default_image.jpg';" onclick="openViewer({{ item.id }})">
+                                    
+                                    <div class="gallery-info bg-white border-top border-3 border-danger">
+                                        <h6 class="fw-bold text-dark text-truncate text-uppercase">{{ item.name }}</h6>
+                                        <span class="badge bg-secondary mb-2 rounded-pill px-3">{{ item.encoded_prize }}</span>
+                                        <div class="d-flex justify-content-center align-items-center gap-1">
+                                            <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Show</a>
                                             <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
                                             
                                             <!-- Status Dots -->
@@ -138,11 +142,13 @@
                                 <div class="gallery-item">
                                     <input type="checkbox" class="form-check-input position-absolute m-2 z-3 bulk-check" value="{{ item.id }}" onclick="event.stopPropagation(); updateBulkBar();">
                                     <span class="badge bg-dark position-absolute top-0 end-0 m-2 z-1 shadow-sm sl-badge">#{{ forloop.counter }}</span>
-                                    <img src="{{ item.image.url }}" class="gallery-img border-danger" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
-                                    <div class="gallery-info bg-white">
-                                        <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
-                                        <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                                        <div class="mt-2 d-flex justify-content-center align-items-center gap-1">
+                                    
+                                    <img src="{% if item.image %}{{ item.image.url }}{% endif %}" class="gallery-img border-danger" alt="{{ item.name }}" onerror="this.onerror=null;this.src='/static/default_image.jpg';" onclick="openViewer({{ item.id }})">
+                                    
+                                    <div class="gallery-info bg-white border-top border-3 border-danger">
+                                        <h6 class="fw-bold text-dark text-truncate text-uppercase">{{ item.name }}</h6>
+                                        <span class="badge bg-secondary mb-2 rounded-pill px-3">{{ item.encoded_prize }}</span>
+                                        <div class="d-flex justify-content-center align-items-center gap-1">
                                             <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Show</a>
                                             <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
                                             
@@ -170,11 +176,13 @@
                         <div class="gallery-item">
                             <input type="checkbox" class="form-check-input position-absolute m-2 z-3 bulk-check" value="{{ item.id }}" onclick="event.stopPropagation(); updateBulkBar();">
                             <span class="badge bg-dark position-absolute top-0 end-0 m-2 z-1 shadow-sm sl-badge">#{{ forloop.counter }}</span>
-                            <img src="{{ item.image.url }}" class="gallery-img" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
-                            <div class="gallery-info bg-light border-top">
-                                <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
-                                <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                                <div class="mt-2 d-flex justify-content-center align-items-center gap-1">
+                            
+                            <img src="{% if item.image %}{{ item.image.url }}{% endif %}" class="gallery-img border-warning" alt="{{ item.name }}" onerror="this.onerror=null;this.src='/static/default_image.jpg';" onclick="openViewer({{ item.id }})">
+                            
+                            <div class="gallery-info bg-white border-top border-3 border-warning">
+                                <h6 class="fw-bold text-dark text-truncate text-uppercase">{{ item.name }}</h6>
+                                <span class="badge bg-secondary mb-2 rounded-pill px-3">{{ item.encoded_prize }}</span>
+                                <div class="d-flex justify-content-center align-items-center gap-1">
                                     <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Approve</a>
                                     <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-outline-danger fw-bold py-0">Hide</a>
                                     <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
@@ -199,12 +207,14 @@
                     <div class="gallery-item">
                         <input type="checkbox" class="form-check-input position-absolute m-2 z-3 bulk-check" value="{{ item.id }}" onclick="event.stopPropagation(); updateBulkBar();">
                         <span class="badge bg-dark position-absolute top-0 end-0 m-2 z-1 shadow-sm sl-badge">#{{ forloop.counter }}</span>
-                        <img src="{{ item.image.url }}" class="gallery-img border-success" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
-                        <div class="gallery-info bg-white">
-                            <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
-                            <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                            <div class="mt-2 d-flex justify-content-center align-items-center gap-1">
-                                <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-outline-danger fw-bold py-0">Hide</a>
+                        
+                        <img src="{% if item.image %}{{ item.image.url }}{% endif %}" class="gallery-img border-success" alt="{{ item.name }}" onerror="this.onerror=null;this.src='/static/default_image.jpg';" onclick="openViewer({{ item.id }})">
+                        
+                        <div class="gallery-info bg-white border-top border-3 border-danger">
+                            <h6 class="fw-bold text-dark text-truncate text-uppercase">{{ item.name }}</h6>
+                            <span class="badge bg-secondary mb-2 rounded-pill px-3">{{ item.encoded_prize }}</span>
+                            <div class="d-flex justify-content-center align-items-center gap-1">
+                                <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Show</a>
                                 <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
                                 
                                 <!-- Status Dots -->
@@ -227,11 +237,13 @@
                         <div class="gallery-item">
                             <input type="checkbox" class="form-check-input position-absolute m-2 z-3 bulk-check" value="{{ item.id }}" onclick="event.stopPropagation(); updateBulkBar();">
                             <span class="badge bg-dark position-absolute top-0 end-0 m-2 z-1 shadow-sm sl-badge">#{{ forloop.counter }}</span>
-                            <img src="{{ item.image.url }}" class="gallery-img border-danger" alt="{{ item.name }}" onclick="openViewer({{ item.id }})">
-                            <div class="gallery-info bg-white">
-                                <h6 class="fw-bold text-dark text-truncate">{{ item.name }}</h6>
-                                <span class="badge bg-secondary">{{ item.encoded_prize }}</span>
-                                <div class="mt-2 d-flex justify-content-center align-items-center gap-1">
+                            
+                            <img src="{% if item.image %}{{ item.image.url }}{% endif %}" class="gallery-img border-danger" alt="{{ item.name }}" onerror="this.onerror=null;this.src='/static/default_image.jpg';" onclick="openViewer({{ item.id }})">
+                            
+                            <div class="gallery-info bg-white border-top border-3 border-danger">
+                                <h6 class="fw-bold text-dark text-truncate text-uppercase">{{ item.name }}</h6>
+                                <span class="badge bg-secondary mb-2 rounded-pill px-3">{{ item.encoded_prize }}</span>
+                                <div class="d-flex justify-content-center align-items-center gap-1">
                                     <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Show</a>
                                     <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
                                     
@@ -259,7 +271,6 @@
             <button type="button" class="btn btn-success btn-sm rounded-pill fw-bold px-3 shadow" onclick="submitBulk('SHOW')"><i class="bi bi-eye me-1"></i> Show</button>
             <button type="button" class="btn btn-outline-light btn-sm rounded-pill fw-bold px-3 shadow" onclick="submitBulk('UNSHOW')"><i class="bi bi-eye-slash me-1"></i> Hide</button>
             <div class="vr bg-light opacity-50 mx-1" style="width: 2px;"></div>
-            <!-- ഇവിടെ 'submitBulkDelete' എന്നതിന് പകരം 'submitBulk' തന്നെ ഉപയോഗിക്കുക -->
             <button type="button" class="btn btn-danger btn-sm rounded-pill fw-bold px-3 shadow" onclick="submitBulk('DELETE')"><i class="bi bi-trash me-1"></i> Delete</button>
         </form>
     </div>
@@ -319,15 +330,18 @@
                 return;
             }
 
+            let form = document.getElementById('bulkForm');
+
             if(action === 'DELETE') {
-                let confirmDelete = confirm("Are you sure? This will delete the selected items and their images.");
+                let confirmDelete = confirm("Are you sure you want to permanently delete the selected images from storage?");
                 if(!confirmDelete) return; 
+                form.action = "{% url 'bulk_delete_gallery_items' %}"; // 🌟 NEW URL FOR BULK DELETE
+            } else {
+                form.action = "{% url 'bulk_update_gallery_status' %}"; // ORIGINAL URL
+                document.getElementById('bulkActionVal').value = action;
             }
 
-            let form = document.getElementById('bulkForm');
-            document.getElementById('bulkActionVal').value = action;
-
-            // പഴയ hidden inputs കളയുക
+            // Remove existing hidden inputs to avoid duplication
             form.querySelectorAll('input[name="item_ids"]').forEach(el => el.remove());
 
             checked.forEach(chk => {
@@ -338,7 +352,7 @@
                 form.appendChild(input);
             });
             
-            form.submit(); // ഈ ലൈൻ ആണ് ഫോം സെർവറിലേക്ക് അയക്കുന്നത്
+            form.submit();
         }
 
         // --- 2. DRAG AND DROP LOGIC ---
@@ -383,14 +397,14 @@
         const galleryItems = [
             {% if is_all %}
                 {% for cat_name, data in grouped_images.items %}
-                    {% for item in data.pending %}{ id: {{ item.id }}, url: "{{ item.image.url|escapejs }}", name: "{{ item.name|escapejs }}" },{% endfor %}
-                    {% for item in data.show %}{ id: {{ item.id }}, url: "{{ item.image.url|escapejs }}", name: "{{ item.name|escapejs }}" },{% endfor %}
-                    {% for item in data.unshow %}{ id: {{ item.id }}, url: "{{ item.image.url|escapejs }}", name: "{{ item.name|escapejs }}" },{% endfor %}
+                    {% for item in data.pending %}{ id: {{ item.id }}, url: "{% if item.image %}{{ item.image.url|escapejs }}{% endif %}", name: "{{ item.name|escapejs }}" },{% endfor %}
+                    {% for item in data.show %}{ id: {{ item.id }}, url: "{% if item.image %}{{ item.image.url|escapejs }}{% endif %}", name: "{{ item.name|escapejs }}" },{% endfor %}
+                    {% for item in data.unshow %}{ id: {{ item.id }}, url: "{% if item.image %}{{ item.image.url|escapejs }}{% endif %}", name: "{{ item.name|escapejs }}" },{% endfor %}
                 {% endfor %}
             {% else %}
-                {% for item in pending_images %}{ id: {{ item.id }}, url: "{{ item.image.url|escapejs }}", name: "{{ item.name|escapejs }}" },{% endfor %}
-                {% for item in show_images %}{ id: {{ item.id }}, url: "{{ item.image.url|escapejs }}", name: "{{ item.name|escapejs }}" },{% endfor %}
-                {% for item in unshow_images %}{ id: {{ item.id }}, url: "{{ item.image.url|escapejs }}", name: "{{ item.name|escapejs }}" },{% endfor %}
+                {% for item in pending_images %}{ id: {{ item.id }}, url: "{% if item.image %}{{ item.image.url|escapejs }}{% endif %}", name: "{{ item.name|escapejs }}" },{% endfor %}
+                {% for item in show_images %}{ id: {{ item.id }}, url: "{% if item.image %}{{ item.image.url|escapejs }}{% endif %}", name: "{{ item.name|escapejs }}" },{% endfor %}
+                {% for item in unshow_images %}{ id: {{ item.id }}, url: "{% if item.image %}{{ item.image.url|escapejs }}{% endif %}", name: "{{ item.name|escapejs }}" },{% endfor %}
             {% endif %}
         ];
 
@@ -412,4 +426,4 @@
         }
     </script>
 </body>
-{% endblock %} 
+{% endblock %}

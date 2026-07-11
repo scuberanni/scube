@@ -25,20 +25,17 @@ from .models import (
 # 0. USER ACCESS CONTROL FUNCTIONS
 # ==============================================================================
 
-# Admin only (Superuser)
 def is_admin(user):
     return user.is_authenticated and user.is_superuser
 
-# Sofa Worker and Admin
 def is_sofa_worker_or_admin(user):
     return user.is_authenticated and (user.is_superuser or user.username == 'sofa_worker')
 
-# PB Worker and Admin
 def is_pb_worker_or_admin(user):
     return user.is_authenticated and (user.is_superuser or user.username == 'pb_worker')
 
 # ==============================================================================
-# 1. PUBLIC VIEWS (No Login Required - For Customers)
+# 1. PUBLIC VIEWS
 # ==============================================================================
 
 def home(request):
@@ -64,66 +61,63 @@ def image_gallery(request, category):
         context = {
             'pending_images': cat_images.filter(gallery_status='PENDING').order_by('sort_order', '-pr_date'),
             'show_images': cat_images.filter(gallery_status='SHOW').order_by('sort_order', '-pr_date'),
+            'unshow_images': cat_images.filter(gallery_status='UNSHOW').order_by('sort_order', '-pr_date'),
             'page_title': category.replace('-', ' '),
             'current_category': category,
             'is_all': False
         }
     return render(request, 'image_gallery.html', context)
 
-# 🟢 1. Bulk Update & Intelligent Image Delete
+# 🟢 1. Bulk Update Status (Show/Hide)
 @user_passes_test(is_admin)
 def bulk_update_gallery_status(request):
     if request.method == 'POST':
         action = request.POST.get('action') 
         item_ids = request.POST.getlist('item_ids') 
-        
-        if item_ids:
-            if action in ['SHOW', 'UNSHOW']:
-                Scube_ss.objects.filter(id__in=item_ids).update(gallery_status=action)
-            elif action == 'DELETE':
-                items = Scube_ss.objects.filter(id__in=item_ids)
-                
-                for item in items:
-                    if item.image:
-                        image_name = item.image.name
-                        
-                        # ഈ ഇമേജ് വേറെ ഏതെങ്കിലും കാർഡിൽ ഉപയോഗിച്ചിട്ടുണ്ടോ എന്ന് പരിശോധിക്കുന്നു
-                        is_shared = Scube_ss.objects.filter(image=image_name).exclude(id=item.id).exists()
-                        
-                        if is_shared:
-                            # 🌟 ഇമേജ് ഒന്നിലധികം കാർഡുകളിൽ ഉണ്ടെങ്കിൽ: 
-                            # ഫയൽ ഡിലീറ്റ് ചെയ്യില്ല, പകരം ഈ കാർഡിലെ ഫയൽ പാത്ത് മാത്രം 'None' ആക്കുന്നു.
-                            item.image = None
-                            item.save()
-                        else:
-                            # 🌟 ഇമേജ് ഈ കാർഡിൽ മാത്രമേ ഉള്ളൂ എങ്കിൽ: 
-                            # ഡാറ്റാബേസിൽ നിന്ന് പാത്ത് മാറ്റുകയും, സ്റ്റോറേജിൽ നിന്ന് ഫയൽ പൂർണ്ണമായി ഡിലീറ്റ് ചെയ്യുകയും ചെയ്യുന്നു.
-                            item.image.delete(save=True)
-                            
+        if item_ids and action in ['SHOW', 'UNSHOW']:
+            Scube_ss.objects.filter(id__in=item_ids).update(gallery_status=action)
     return redirect(request.META.get('HTTP_REFERER', 'image_categories'))
 
-# 🟢 2. Single Image Intelligent Delete
+# 🟢 2. Bulk Delete Images Only (NEW FUNCTION)
+@user_passes_test(is_admin)
+def bulk_delete_gallery_items(request):
+    if request.method == 'POST':
+        item_ids = request.POST.getlist('item_ids')
+        if item_ids:
+            items = Scube_ss.objects.filter(id__in=item_ids)
+            for item in items:
+                if item.image:
+                    image_name = item.image.name
+                    shared_count = Scube_ss.objects.filter(image=image_name).count()
+                    
+                    if shared_count > 1:
+                        # 🌟 ഇമേജ് ഒന്നിലധികം കാർഡുകളിൽ ഉണ്ടെങ്കിൽ: കാർഡിൽ നിന്ന് മാത്രം ഒഴിവാക്കുന്നു
+                        item.image = None
+                        item.save()
+                    else:
+                        # 🌟 ഇമേജ് ഈ കാർഡിൽ മാത്രമേ ഉള്ളൂ എങ്കിൽ: സ്റ്റോറേജിൽ നിന്ന് പൂർണ്ണമായി ഡിലീറ്റ് ചെയ്യുന്നു
+                        item.image.delete(save=False)
+                        item.image = None
+                        item.save()
+    return redirect(request.META.get('HTTP_REFERER', 'image_categories'))
+
+# 🟢 3. Single Image Delete
 @user_passes_test(is_admin)
 def delete_gallery_item(request, item_id):
     item = get_object_or_404(Scube_ss, id=item_id)
-    
     if item.image:
         image_name = item.image.name
-        
-        # ഈ ഇമേജ് വേറെ ഏതെങ്കിലും കാർഡിൽ ഉണ്ടോ എന്ന് നോക്കുന്നു
-        is_shared = Scube_ss.objects.filter(image=image_name).exclude(id=item.id).exists()
-        
-        if is_shared:
-            # മറ്റ് കാർഡുകളിൽ ഉണ്ടെങ്കിൽ ഈ കാർഡിൽ നിന്ന് മാത്രം ഒഴിവാക്കുന്നു (സ്റ്റോറേജിൽ നിന്ന് കളയില്ല)
+        shared_count = Scube_ss.objects.filter(image=image_name).count()
+        if shared_count > 1:
             item.image = None
             item.save()
         else:
-            # ഇതിൽ മാത്രമേ ഉള്ളൂ എങ്കിൽ സ്റ്റോറേജിൽ നിന്നും പൂർണ്ണമായി ഡിലീറ്റ് ചെയ്യുന്നു
-            item.image.delete(save=True) 
-            
+            item.image.delete(save=False)
+            item.image = None
+            item.save() 
     return redirect(request.META.get('HTTP_REFERER', 'image_categories'))
 
-# NEW Category display functions
+# Category display functions
 def show_cupboard2(request):
     ls_data = Scube_ss.objects.filter(Catogory="CUPBOARD", new_pr="NEW").order_by('size')
     return render(request, 'all_products1.html', {'products': ls_data})
@@ -301,7 +295,6 @@ def edit_production(request, record_id):
         record.other_cost = float(request.POST.get('other_cost') or 0)
         record.wood_cost = float(request.POST.get('wood_cost') or 0)
         
-        # Security check: Only admin can update wage_cost
         if request.user.is_superuser:
             record.wage_cost = float(request.POST.get('wage_cost') or 0)
             
@@ -361,7 +354,6 @@ def delete_production(request, record_id):
         record.delete()
     return redirect('production_summary')
 
-# Sofa Monthly Report (Worker can view & add payments)
 @user_passes_test(is_sofa_worker_or_admin)
 def sofa_wage_paid_report(request, year=None, month=None):
     today = datetime.date.today()
@@ -379,7 +371,6 @@ def sofa_wage_paid_report(request, year=None, month=None):
     
     if request.method == 'POST':
         if 'add_payment' in request.POST:
-            # Worker and Admin can add payments
             form = SofaPaidForm(request.POST)
             if form.is_valid():
                 form.save()
@@ -595,7 +586,6 @@ def edit_board_production(request, record_id):
         record.cl_material = request.POST.get('cl_material')
         record.cl_color = request.POST.get('cl_color')
         
-        # Security check: Only admin can update cl_wage
         if request.user.is_superuser:
             record.cl_wage = float(request.POST.get('cl_wage') or 0)
             
@@ -613,7 +603,6 @@ def delete_board_production(request, record_id):
         record.delete()
     return redirect(request.META.get('HTTP_REFERER', 'board_production_summary'))
 
-# PB Monthly Report (Worker can view & add payments)
 @user_passes_test(is_pb_worker_or_admin)
 def wage_paid_report(request, year=None, month=None):
     today = datetime.date.today()
@@ -631,7 +620,6 @@ def wage_paid_report(request, year=None, month=None):
     
     if request.method == 'POST':
         if 'add_payment' in request.POST:
-            # Worker and Admin can add payments
             form = PBPaidForm(request.POST)
             if form.is_valid():
                 form.save()
@@ -672,7 +660,6 @@ def wage_paid_report(request, year=None, month=None):
 # 4. SUPERUSER / ADMIN VIEWS (Admin Only)
 # ==============================================================================
 
-# Payment Edit/Delete Functions (Strictly Admin Only)
 @user_passes_test(is_admin)
 def edit_payment(request, payment_id):
     payment = get_object_or_404(PB_Paid_Entry, id=payment_id)
@@ -843,7 +830,6 @@ def del_cnf(request, pk):
         return redirect('list')
     return render(request, 'del_cnf.html')
 
-# -- Admin Approvals --
 @user_passes_test(is_admin)
 def approve_production(request, record_id):
     record = get_object_or_404(SofaProductionRecord, id=record_id)
@@ -900,16 +886,6 @@ def bulk_approve_board_production(request):
                 record.save()
     return redirect('board_production_summary')
 
-# -- Admin Gallery Management --
-@user_passes_test(is_admin)
-def bulk_update_gallery_status(request):
-    if request.method == 'POST':
-        action = request.POST.get('action') 
-        item_ids = request.POST.getlist('item_ids')
-        if action in ['SHOW', 'UNSHOW'] and item_ids:
-            Scube_ss.objects.filter(id__in=item_ids).update(gallery_status=action)
-    return redirect(request.META.get('HTTP_REFERER', 'image_categories'))
-
 @user_passes_test(is_admin)
 def update_sort_order(request):
     if request.method == 'POST':
@@ -931,7 +907,6 @@ def change_gallery_status(request, item_id, status):
         item.save()
     return redirect(request.META.get('HTTP_REFERER', 'image_categories'))
 
-# -- Admin Orders & Reports --
 @user_passes_test(is_admin)
 def orders_det(request):
     ls_data = orders.objects.all().order_by('id')
@@ -1018,7 +993,6 @@ def sales_bill(request):
             invoice_number=inv_no, date=date, customer_name=cust_status
         )
         
-        # Input names from new design
         p_ids = request.POST.getlist('product_ids[]')
         qtys = request.POST.getlist('quantities[]')
         prices = request.POST.getlist('prices[]')
@@ -1039,7 +1013,6 @@ def sales_bill(request):
                     )
                     g_total += t
                     
-                    # 🟢 Updating SCUBE master table
                     prod.status = cust_status     
                     prod.sl_date = date           
                     prod.prize = int(p)           
@@ -1054,7 +1027,6 @@ def sales_bill(request):
         
     categories = Catogory_choice
     statuses = status_choice  
-    # Fetching SCUBE status only for dropdown
     scube_products = Scube_ss.objects.filter(status='SCUBE').order_by('Catogory', 'name')
     
     return render(request, 'sales_bill.html', {
@@ -1069,11 +1041,9 @@ def get_scube_products(request):
     products = Scube_ss.objects.filter(Catogory=cat, status='SCUBE').values('id', 'name', 'code', 'prize')
     return JsonResponse({'products': list(products)})
 
-# 🟢 Invoice History (with filters)
 @user_passes_test(is_admin)
 def invoice_history(request):
     today = datetime.date.today()
-    # Default: First day of current month to today
     first_day_of_month = today.replace(day=1)
     
     start_date = request.GET.get('start_date') or first_day_of_month.strftime('%Y-%m-%d')
@@ -1096,7 +1066,6 @@ def invoice_history(request):
     }
     return render(request, 'invoice_history.html', context)
 
-# 🟢 View Invoice Details
 @user_passes_test(is_admin)
 def invoice_detail(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
@@ -1192,6 +1161,5 @@ def delete_stock_item(request, item_id):
     cat_id = item.material.id
     if request.method == 'POST':
         item.delete()
-        messages.success(request, 'Item Deleted!')
+        messages.success(request, 'Item Deleted!') 
     return redirect(f"/stock-management/?cat_id={cat_id}")
-
