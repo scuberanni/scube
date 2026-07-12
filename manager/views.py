@@ -1177,3 +1177,8 @@ def delete_stock_item(request, item_id):
         item.delete()
         messages.success(request, 'Item Deleted!')
     return redirect(f"/stock-management/?cat_id={cat_id}")
+
+@user_passes_test(is_admin)
+def stock_item_detail(request, item_id):
+    item = get_object_or_404(StockItem, id=item_id)
+    return render(request, 'stock_item_detail.html', {'item': item})

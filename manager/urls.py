@@ -124,4 +124,5 @@ urlpatterns = [
     path('stock-management/add-item/', views.add_stock_item, name='add_stock_item'),
     path('stock-management/edit-item/<int:item_id>/', views.edit_stock_item, name='edit_stock_item'),
     path('stock-management/delete-item/<int:item_id>/', views.delete_stock_item, name='delete_stock_item'),
+    path('stock-management/item/<int:item_id>/', views.stock_item_detail, name='stock_item_detail'),
 ]

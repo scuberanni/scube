@@ -1,0 +1,134 @@
+{% extends 'blank_layout.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #121212 !important; 
+        color: #f8f9fa !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .detail-wrapper {
+        background: linear-gradient(145deg, #1e2229, #2b303a);
+        border: 1px solid #3a414e;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 15px 35px rgba(0, 242, 254, 0.15);
+    }
+    .img-container {
+        background-color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        min-height: 450px;
+        padding: 20px;
+    }
+    .img-container img {
+        max-width: 100%;
+        max-height: 500px;
+        object-fit: contain;
+        border-radius: 10px;
+    }
+    .info-container {
+        padding: 40px;
+    }
+    .item-title {
+        color: #00f2fe;
+        font-weight: 900;
+        font-size: 2.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .item-category {
+        color: #a0a0a0;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+    }
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 0;
+        border-bottom: 1px solid #3a414e;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    
+    .label {
+        color: #9aa0a6;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    .value {
+        color: #ffffff;
+        font-weight: 800;
+        font-size: 1.2rem;
+    }
+    .value.price { color: #ffc107; font-size: 1.5rem; }
+    .value.stock { color: #00f2fe; font-size: 1.5rem; }
+    .value.total { color: #20c997; font-size: 2rem; }
+</style>
+
+<div class="container mt-5 mb-5">
+    <a href="{% url 'stock_management' %}?cat_id={{ item.material.id }}" class="btn btn-outline-info rounded-pill px-4 mb-4 fw-bold shadow">
+        <i class="bi bi-arrow-left me-2"></i> Back to Stock List
+    </a>
+
+    <div class="row detail-wrapper g-0">
+        <!-- 🌟 Left Side: Large Full Photo -->
+        <div class="col-lg-6 border-end border-secondary">
+            <div class="img-container">
+                {% if item.image %}
+                <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                {% else %}
+                <img src="https://5.imimg.com/images/I/81hU2oV2vIL._AC_UF894,1000_QL80_.jpg" alt="Default Image">
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 🌟 Right Side: Item Details -->
+        <div class="col-lg-6">
+            <div class="info-container d-flex flex-column justify-content-center h-100">
+                <div class="mb-4 pb-3 border-bottom border-secondary">
+                    <div class="item-category mb-2"><i class="bi bi-tags me-2"></i>{{ item.material.get_material_type_display }} / {{ item.material.category_name }}</div>
+                    <h1 class="item-title m-0">{{ item.name }}</h1>
+                </div>
+
+                <div class="details-list">
+                    <div class="detail-row">
+                        <span class="label">Color</span>
+                        <span class="value">{{ item.color|default:"Not Specified" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Size</span>
+                        <span class="value">{{ item.size|default:"Not Specified" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Price per Unit</span>
+                        <span class="value price">₹ {{ item.prize }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Available Stock</span>
+                        <span class="value stock"><i class="bi bi-boxes me-2"></i>{{ item.stock }}</span>
+                    </div>
+                    <div class="detail-row mt-3 border-top border-secondary pt-4">
+                        <span class="label fs-5 mt-2 text-white">Total Value</span>
+                        <span class="value total" id="totalStockValue">₹ 0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Total value ഓട്ടോമാറ്റിക് ആയി കാൽക്കുലേറ്റ് ചെയ്യാൻ
+    document.addEventListener("DOMContentLoaded", function() {
+        let price = parseFloat("{{ item.prize }}") || 0;
+        let stock = parseInt("{{ item.stock }}") || 0;
+        let total = price * stock;
+        document.getElementById('totalStockValue').innerText = "₹ " + total.toLocaleString('en-IN');
+    });
+</script>
+{% endblock %}
