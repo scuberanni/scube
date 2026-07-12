@@ -46,22 +46,39 @@ def image_categories(request):
 
 def image_gallery(request, category):
     base_query = Scube_ss.objects.exclude(image='').exclude(image__isnull=True)
+    
     if category == 'ALL':
+        # 🌟 ഇന്നത്തെ ഡേറ്റിൽ നിന്ന് 100 ദിവസം പുറകോട്ടുള്ള ഡേറ്റ് കണ്ടുപിടിക്കുന്നു
+        cutoff_date = datetime.date.today() - datetime.timedelta(days=100)
+        
+        # 1. നിലനിർത്തേണ്ടവ: 100 ദിവസത്തിനുള്ളിൽ ഉള്ളത്, അല്ലെങ്കിൽ Green Dot (SCUBE) ഉള്ളത്, അല്ലെങ്കിൽ Blue Dot (NEW) ഉള്ളത്
+        valuable_unshow_items = base_query.filter(gallery_status='UNSHOW').filter(
+            Q(pr_date__gte=cutoff_date) | Q(status='SCUBE') | Q(new_pr='NEW')
+        )
+        
+        grouped_images = {}
+        for cat in [c[0] for c in Catogory_choice]:
+            cat_items = valuable_unshow_items.filter(Catogory=cat).order_by('sort_order', '-pr_date')
+            if cat_items.exists():
+                grouped_images[cat] = {'unshow': cat_items}
+        
+        # 2. ഒഴിവാക്കേണ്ടവ: 100 ദിവസം കഴിഞ്ഞതും (അല്ലെങ്കിൽ ഡേറ്റ് ഇല്ലാത്തതും) ഒപ്പം Green/Blue ഡോട്ടുകൾ ഇല്ലാത്തതുമായവ
+        old_hidden_images = base_query.filter(gallery_status='UNSHOW').exclude(
+            id__in=valuable_unshow_items.values('id')
+        ).order_by('-pr_date')
+
         context = {
-            'grouped_images': {
-                cat: {
-                    'unshow': base_query.filter(Catogory=cat, gallery_status='UNSHOW').order_by('sort_order', '-pr_date')
-                } for cat in [c[0] for c in Catogory_choice]
-            },
+            'grouped_images': grouped_images,
+            'old_hidden_images': old_hidden_images,
             'is_all': True,
             'page_title': "ALL PRODUCTS GALLERY"
         }
     else:
+        # സിംഗിൾ കാറ്റഗറികൾക്ക് പഴയ പോലെ തന്നെ
         cat_images = base_query.filter(Catogory=category)
         context = {
             'pending_images': cat_images.filter(gallery_status='PENDING').order_by('sort_order', '-pr_date'),
             'show_images': cat_images.filter(gallery_status='SHOW').order_by('sort_order', '-pr_date'),
-            'unshow_images': cat_images.filter(gallery_status='UNSHOW').order_by('sort_order', '-pr_date'),
             'page_title': category.replace('-', ' '),
             'current_category': category,
             'is_all': False
@@ -78,7 +95,7 @@ def bulk_update_gallery_status(request):
             Scube_ss.objects.filter(id__in=item_ids).update(gallery_status=action)
     return redirect(request.META.get('HTTP_REFERER', 'image_categories'))
 
-# 🟢 2. Bulk Delete Images Only (NEW FUNCTION)
+# 🟢 2. Bulk Delete Images Only
 @user_passes_test(is_admin)
 def bulk_delete_gallery_items(request):
     if request.method == 'POST':
@@ -89,13 +106,10 @@ def bulk_delete_gallery_items(request):
                 if item.image:
                     image_name = item.image.name
                     shared_count = Scube_ss.objects.filter(image=image_name).count()
-                    
                     if shared_count > 1:
-                        # 🌟 ഇമേജ് ഒന്നിലധികം കാർഡുകളിൽ ഉണ്ടെങ്കിൽ: കാർഡിൽ നിന്ന് മാത്രം ഒഴിവാക്കുന്നു
                         item.image = None
                         item.save()
                     else:
-                        # 🌟 ഇമേജ് ഈ കാർഡിൽ മാത്രമേ ഉള്ളൂ എങ്കിൽ: സ്റ്റോറേജിൽ നിന്ന് പൂർണ്ണമായി ഡിലീറ്റ് ചെയ്യുന്നു
                         item.image.delete(save=False)
                         item.image = None
                         item.save()
@@ -1161,5 +1175,5 @@ def delete_stock_item(request, item_id):
     cat_id = item.material.id
     if request.method == 'POST':
         item.delete()
-        messages.success(request, 'Item Deleted!') 
+        messages.success(request, 'Item Deleted!')
     return redirect(f"/stock-management/?cat_id={cat_id}")

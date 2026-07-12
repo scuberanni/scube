@@ -8,7 +8,7 @@
     .selected-card { border: 4px solid #ffc107 !important; transform: scale(0.95); opacity: 0.8; }
     .gallery-item { position: relative; overflow: hidden; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.2s ease; background-color: #fff; margin-bottom: 20px;}
     .gallery-item:hover { box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-    .gallery-img { width: 100%; height: 250px; object-fit: contain; background-color: #ffffff; border-bottom: 3px solid #0d6efd; }
+    .gallery-img { width: 100%; height: 250px; object-fit: contain; background-color: #ffffff; border-bottom: 3px solid #dc3545; }
     .gallery-info { padding: 15px 10px; text-align: center; }
     .viewer-btn { width: 50px; height: 50px; opacity: 0.6; transition: opacity 0.3s ease; z-index: 1055; }
     .viewer-btn:hover { opacity: 1; }
@@ -71,71 +71,9 @@
             {% for cat_name, data in grouped_images.items %}
                 <div class="mb-5">
                     <h3 class="text-primary fw-bold border-start border-4 border-primary ps-2 mb-3">{{ cat_name }}</h3>
-                    
-                    {% if data.pending %}
-                        <h6 class="text-warning fw-bold mt-3">PENDING</h6>
-                        <div class="row g-3 mb-3 sortable-grid">
-                            {% for item in data.pending %}
-                            <div class="col-12 col-md-4 col-lg-3 gallery-item-wrapper" data-id="{{ item.id }}">
-                                <div class="gallery-item">
-                                    <input type="checkbox" class="form-check-input position-absolute m-2 z-3 bulk-check" value="{{ item.id }}" onclick="event.stopPropagation(); updateBulkBar();">
-                                    <span class="badge bg-dark position-absolute top-0 end-0 m-2 z-1 shadow-sm sl-badge">#{{ forloop.counter }}</span>
-                                    
-                                    <img src="{% if item.image %}{{ item.image.url }}{% endif %}" class="gallery-img border-warning" alt="{{ item.name }}" onerror="this.onerror=null;this.src='/static/default_image.jpg';" onclick="openViewer({{ item.id }})">
-                                    
-                                    <div class="gallery-info bg-white border-top border-3 border-warning">
-                                        <h6 class="fw-bold text-dark text-truncate text-uppercase">{{ item.name }}</h6>
-                                        <span class="badge bg-secondary mb-2 rounded-pill px-3">{{ item.encoded_prize }}</span>
-                                        <div class="d-flex justify-content-center align-items-center gap-1">
-                                            <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Approve</a>
-                                            <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-outline-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
-                                            
-                                            <!-- Status Dots -->
-                                            <div class="d-flex align-items-center ms-2 gap-1">
-                                                {% if item.status == 'SCUBE' %}<div class="status-dot dot-scube" title="SCUBE"></div>{% endif %}
-                                                {% if item.new_pr == 'NEW' %}<div class="status-dot dot-new" title="NEW"></div>{% endif %}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
 
-                    {% if data.show %}
-                        <h6 class="text-success fw-bold mt-3">SHOW</h6>
-                        <div class="row g-3 mb-3 sortable-grid">
-                            {% for item in data.show %}
-                            <div class="col-12 col-md-4 col-lg-3 gallery-item-wrapper" data-id="{{ item.id }}">
-                                <div class="gallery-item">
-                                    <input type="checkbox" class="form-check-input position-absolute m-2 z-3 bulk-check" value="{{ item.id }}" onclick="event.stopPropagation(); updateBulkBar();">
-                                    <span class="badge bg-dark position-absolute top-0 end-0 m-2 z-1 shadow-sm sl-badge">#{{ forloop.counter }}</span>
-                                    
-                                    <img src="{% if item.image %}{{ item.image.url }}{% endif %}" class="gallery-img border-success" alt="{{ item.name }}" onerror="this.onerror=null;this.src='/static/default_image.jpg';" onclick="openViewer({{ item.id }})">
-                                    
-                                    <div class="gallery-info bg-white border-top border-3 border-danger">
-                                        <h6 class="fw-bold text-dark text-truncate text-uppercase">{{ item.name }}</h6>
-                                        <span class="badge bg-secondary mb-2 rounded-pill px-3">{{ item.encoded_prize }}</span>
-                                        <div class="d-flex justify-content-center align-items-center gap-1">
-                                            <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Show</a>
-                                            <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
-                                            
-                                            <!-- Status Dots -->
-                                            <div class="d-flex align-items-center ms-2 gap-1">
-                                                {% if item.status == 'SCUBE' %}<div class="status-dot dot-scube" title="SCUBE"></div>{% endif %}
-                                                {% if item.new_pr == 'NEW' %}<div class="status-dot dot-new" title="NEW"></div>{% endif %}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    
                     {% if data.unshow %}
-                        <h6 class="text-danger fw-bold mt-3">UNSHOW (HIDDEN)</h6>
+                        <h6 class="text-danger fw-bold mt-3">UNSHOW (HIDDEN) <span class="text-secondary small">- Last 100 Days</span></h6>
                         <div class="row g-3 mb-3 sortable-grid">
                             {% for item in data.unshow %}
                             <div class="col-12 col-md-4 col-lg-3 gallery-item-wrapper" data-id="{{ item.id }}">
@@ -166,6 +104,53 @@
                     {% endif %}
                 </div>
             {% endfor %}
+
+            <!-- 🌟 OLD HIDDEN IMAGES SECTION 🌟 -->
+            {% if old_hidden_images %}
+            <div class="mb-5 mt-5 p-4 border border-danger border-2 rounded  shadow-sm" id="oldHiddenSection">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 border-danger">
+                    <h3 class="text-danger fw-bold m-0"><i class="bi bi-trash3"></i> OLD & UNMARKED HIDDEN IMAGES (> 100 Days)</h3>
+                    
+                    <div class="form-check bg-danger text-white p-2 px-3 rounded-pill shadow-sm">
+                        <input class="form-check-input border-white" type="checkbox" id="selectAllOldCheck" onclick="toggleSelectOld()" style="cursor: pointer; width: 1.2rem; height: 1.2rem;">
+                        <label class="form-check-label fw-bold ms-2" for="selectAllOldCheck" style="cursor: pointer; padding-top: 2px;">
+                            Select All Old Images
+                        </label>
+                    </div>
+                </div>
+                
+                <p class="text-muted small fw-bold mb-4">These images are older than 100 days or lack SCUBE/NEW tags. Select them to bulk delete and clear storage.</p>
+                
+                <div class="row g-3 sortable-grid">
+                    {% for item in old_hidden_images %}
+                    <div class="col-12 col-md-4 col-lg-3 gallery-item-wrapper" data-id="{{ item.id }}">
+                        <div class="gallery-item">
+                            <!-- Notice the added 'old-bulk-check' class -->
+                            <input type="checkbox" class="form-check-input position-absolute m-2 z-3 bulk-check old-bulk-check" value="{{ item.id }}" onclick="event.stopPropagation(); updateBulkBar();">
+                            <span class="badge bg-dark position-absolute top-0 end-0 m-2 z-1 shadow-sm sl-badge">#{{ forloop.counter }}</span>
+                            
+                            <img src="{% if item.image %}{{ item.image.url }}{% endif %}" class="gallery-img border-danger opacity-75" alt="{{ item.name }}" onerror="this.onerror=null;this.src='/static/default_image.jpg';" onclick="openViewer({{ item.id }})">
+                            
+                            <div class="gallery-info bg-light border-top border-3 border-danger">
+                                <h6 class="fw-bold text-secondary text-truncate text-uppercase">{{ item.name }}</h6>
+                                <span class="badge bg-secondary mb-2 rounded-pill px-3">{{ item.encoded_prize }}</span>
+                                <div class="d-flex justify-content-center align-items-center gap-1">
+                                    <a href="{% url 'change_gallery_status' item.id 'SHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Show</a>
+                                    <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
+                                    
+                                    <!-- Status Dots -->
+                                    <div class="d-flex align-items-center ms-2 gap-1">
+                                        {% if item.status == 'SCUBE' %}<div class="status-dot dot-scube" title="SCUBE"></div>{% endif %}
+                                        {% if item.new_pr == 'NEW' %}<div class="status-dot dot-new" title="NEW"></div>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
 
         {% else %}
             {% if pending_images %}
@@ -214,7 +199,7 @@
                             <h6 class="fw-bold text-dark text-truncate text-uppercase">{{ item.name }}</h6>
                             <span class="badge bg-secondary mb-2 rounded-pill px-3">{{ item.encoded_prize }}</span>
                             <div class="d-flex justify-content-center align-items-center gap-1">
-                                <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-success fw-bold py-0">Show</a>
+                                <a href="{% url 'change_gallery_status' item.id 'UNSHOW' %}" class="btn btn-sm btn-outline-danger fw-bold py-0">Hide</a>
                                 <a href="{% url 'delete_gallery_item' item.id %}" onclick="return confirm('Permanently delete this image?');" class="btn btn-sm btn-danger fw-bold py-0" title="Delete"><i class="bi bi-trash"></i></a>
                                 
                                 <!-- Status Dots -->
@@ -300,14 +285,28 @@
             checkboxes.forEach(chk => {
                 chk.checked = isChecked;
             });
+            
+            // Sync old section checkbox if available
+            let oldCheck = document.getElementById('selectAllOldCheck');
+            if (oldCheck) oldCheck.checked = isChecked;
+
+            updateBulkBar();
+        }
+
+        function toggleSelectOld() {
+            let isChecked = document.getElementById('selectAllOldCheck').checked;
+            let checkboxes = document.querySelectorAll('.old-bulk-check');
+            
+            checkboxes.forEach(chk => {
+                chk.checked = isChecked;
+            });
+            
             updateBulkBar();
         }
 
         function updateBulkBar() {
-            let allChecks = document.querySelectorAll('.bulk-check');
             let checked = document.querySelectorAll('.bulk-check:checked');
             let bar = document.getElementById('bulkActionBar');
-            let selectAllBox = document.getElementById('selectAllCheck');
             
             document.getElementById('selCount').innerText = checked.length;
             
@@ -315,10 +314,6 @@
                 bar.classList.remove('d-none');
             } else {
                 bar.classList.add('d-none');
-            }
-
-            if(selectAllBox && allChecks.length > 0) {
-                selectAllBox.checked = (checked.length === allChecks.length);
             }
         }
 
@@ -397,10 +392,9 @@
         const galleryItems = [
             {% if is_all %}
                 {% for cat_name, data in grouped_images.items %}
-                    {% for item in data.pending %}{ id: {{ item.id }}, url: "{% if item.image %}{{ item.image.url|escapejs }}{% endif %}", name: "{{ item.name|escapejs }}" },{% endfor %}
-                    {% for item in data.show %}{ id: {{ item.id }}, url: "{% if item.image %}{{ item.image.url|escapejs }}{% endif %}", name: "{{ item.name|escapejs }}" },{% endfor %}
                     {% for item in data.unshow %}{ id: {{ item.id }}, url: "{% if item.image %}{{ item.image.url|escapejs }}{% endif %}", name: "{{ item.name|escapejs }}" },{% endfor %}
                 {% endfor %}
+                {% for item in old_hidden_images %}{ id: {{ item.id }}, url: "{% if item.image %}{{ item.image.url|escapejs }}{% endif %}", name: "{{ item.name|escapejs }}" },{% endfor %}
             {% else %}
                 {% for item in pending_images %}{ id: {{ item.id }}, url: "{% if item.image %}{{ item.image.url|escapejs }}{% endif %}", name: "{{ item.name|escapejs }}" },{% endfor %}
                 {% for item in show_images %}{ id: {{ item.id }}, url: "{% if item.image %}{{ item.image.url|escapejs }}{% endif %}", name: "{{ item.name|escapejs }}" },{% endfor %}
