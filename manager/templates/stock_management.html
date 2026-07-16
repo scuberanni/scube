@@ -172,6 +172,32 @@
         <h3 class="m-0 fw-bold text-uppercase text-white" style="letter-spacing: 0.5px;"><i class="bi bi-box-seam me-2 text-warning"></i>Stock Management</h3>
       </div>
     </div>
+
+    <!-- Main Heading-ൽ മാറ്റം -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="category-title">STOCK MANAGEMENT</h4>
+      <button class="btn btn-warning fw-bold" data-bs-toggle="modal" data-bs-target="#adjModal"><i class="bi bi-arrow-left-right"></i> Stock Adjustment</button>
+    </div>
+
+    <!-- Adjustment Modal -->
+    <div class="modal fade" id="adjModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+          <form action="{% url 'adjust_stock' %}" method="POST">
+            {% csrf_token %}
+            <div class="modal-body">
+              <!-- Step 1: Select Type -->
+              <select id="matType" class="form-select mb-2" onchange="loadCategories()">
+                <option value="SOFA">SOFA MATERIAL</option>
+                <option value="PB">PB MATERIAL</option>
+              </select>
+              <!-- മറ്റ് ഫോം ഫീൽഡുകൾ ഇവിടെ വരും... -->
+              <!-- JS ഉപയോഗിച്ച് ഐറ്റങ്ങൾ ലോഡ് ചെയ്യുന്ന കോഡ് കൂടി ഇതിൽ വേണം -->
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="container-fluid mt-4 px-3 px-md-4">
@@ -464,4 +490,37 @@
       })
     })
   </script>
+
+  <script>
+// 1. മെറ്റീരിയൽ ടൈപ്പ് മാറുമ്പോൾ കാറ്റഗറി ലോഡ് ചെയ്യുന്നു
+    function loadCategories() {
+        let type = document.getElementById('matType').value;
+        let catSelect = document.getElementById('catSelect');
+        
+        // ഇവിടെ നിങ്ങളുടെ category ലിസ്റ്റ് ഡൈനാമിക് ആയി ഫിൽറ്റർ ചെയ്യാം
+        // എളുപ്പത്തിന്, എല്ലാ കാറ്റഗറികളും JS അറേ ആയി നൽകാം
+        let categories = {% if all_categories %}[{% for cat in all_categories %}{id: "{{cat.id}}", type: "{{cat.material_type}}", name: "{{cat.category_name}}"},{% endfor %}]{% else %}[]{% endif %};
+        
+        catSelect.innerHTML = '<option value="">Select Category</option>';
+        categories.filter(c => c.type === type).forEach(c => {
+            catSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+        });
+    }
+
+    // 2. കാറ്റഗറി സെലക്ട് ചെയ്യുമ്പോൾ അതിലെ ഐറ്റങ്ങൾ ലോഡ് ചെയ്യുന്നു
+    function loadItems() {
+        let catId = document.getElementById('catSelect').value;
+        if(!catId) return;
+
+        fetch(`/stock-management/get-items/?category_id=${catId}`)
+        .then(res => res.json())
+        .then(data => {
+            let itemSelect = document.getElementById('itemSelect');
+            itemSelect.innerHTML = '<option value="">Select Item</option>';
+            data.items.forEach(item => {
+                itemSelect.innerHTML += `<option value="${item.id}">${item.name}</option>`;
+            });
+        });
+    }
+</script>
 {% endblock %}

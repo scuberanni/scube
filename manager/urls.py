@@ -125,4 +125,8 @@ urlpatterns = [
     path('stock-management/edit-item/<int:item_id>/', views.edit_stock_item, name='edit_stock_item'),
     path('stock-management/delete-item/<int:item_id>/', views.delete_stock_item, name='delete_stock_item'),
     path('stock-management/item/<int:item_id>/', views.stock_item_detail, name='stock_item_detail'),
+
+    # Stock Adjustment URL-കൾ
+    path('stock-management/adjust/', views.adjust_stock, name='adjust_stock'),
+    path('stock-management/get-items/', views.get_items_ajax, name='get_items_ajax'),
 ]

@@ -3,6 +3,7 @@ from io import BytesIO
 from PIL import Image, ImageOps  # ImageOps ഇമ്പോർട്ട് ചെയ്തു (റൊട്ടേഷൻ ശരിയാക്കാൻ)
 from django.core.files.uploadedfile import InMemoryUploadedFile
 import sys
+import datetime
 
 # ==========================================
 # CHOICES TUPLES
@@ -358,3 +359,24 @@ class StockItem(models.Model):
 
     def __str__(self):
         return self.name
+    
+class StockAdjustment(models.Model):
+    TYPE_CHOICES = [('IN', 'STOCK IN'), ('OUT', 'STOCK OUT')]
+    
+    item = models.ForeignKey(StockItem, on_delete=models.CASCADE, related_name='adjustments')
+    date = models.DateField(default=datetime.date.today)
+    adjustment_type = models.CharField(max_length=3, choices=TYPE_CHOICES)
+    quantity = models.IntegerField()
+    description = models.CharField(max_length=200, blank=True)
+
+    def save(self, *args, **kwargs):
+        # Stock അപ്ഡേറ്റ് ചെയ്യുന്ന ലോജിക്
+        if self.adjustment_type == 'IN':
+            self.item.stock += self.quantity
+        else:
+            self.item.stock -= self.quantity
+        self.item.save()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.item.name} - {self.adjustment_type} ({self.quantity})"

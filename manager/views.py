@@ -15,7 +15,7 @@ from .forms import PrForm, OrderForm, PBPaidForm, SofaPaidForm
 from .models import (
     Scube_ss, orders, MaterialName, Material, 
     SofaProductionRecord, ProductionMaterialItem, 
-    BoardColor, BoardMaterial, ProductItem, 
+    BoardColor, BoardMaterial, ProductItem, StockAdjustment,
     BoardProductionRecord, PB_Paid_Entry, Sofa_Paid_Entry,
     Invoice, InvoiceItem, StockMaterialCategory, StockItem,
     Catogory_choice, status_choice
@@ -1182,3 +1182,29 @@ def delete_stock_item(request, item_id):
 def stock_item_detail(request, item_id):
     item = get_object_or_404(StockItem, id=item_id)
     return render(request, 'stock_item_detail.html', {'item': item})
+
+@user_passes_test(is_admin)
+def adjust_stock(request):
+    if request.method == 'POST':
+        item_id = request.POST.get('item_id')
+        adj_type = request.POST.get('adjustment_type')
+        qty = int(request.POST.get('quantity'))
+        date = request.POST.get('date')
+        
+        item = get_object_or_404(StockItem, id=item_id)
+        StockAdjustment.objects.create(
+            item=item, date=date, adjustment_type=adj_type, quantity=qty
+        )
+        messages.success(request, f"Stock {adj_type} successful for {item.name}")
+        return redirect('stock_management')
+    
+    # AJAX വഴി ഐറ്റങ്ങൾ ലഭിക്കാൻ
+    material_type = request.GET.get('material_type')
+    category_id = request.GET.get('category_id')
+    items = StockItem.objects.filter(material__id=category_id)
+    return JsonResponse({'items': list(items.values('id', 'name'))})
+
+def get_items_ajax(request):
+    cat_id = request.GET.get('category_id')
+    items = StockItem.objects.filter(material_id=cat_id).values('id', 'name')
+    return JsonResponse({'items': list(items)})
