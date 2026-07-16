@@ -1208,3 +1208,68 @@ def get_items_ajax(request):
     cat_id = request.GET.get('category_id')
     items = StockItem.objects.filter(material_id=cat_id).values('id', 'name')
     return JsonResponse({'items': list(items)})
+
+# ==========================================
+# 8. DEMO PRINTING VIEWS
+# ==========================================
+from .models import DemoPrintJob
+
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.utils import timezone
+from .models import DemoPrintJob, Scube_ss
+import json
+
+def demo_print_page(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            items = data.get('items', [])
+            
+            # 1. കൃത്യമായ ഇന്ത്യൻ സമയം എടുക്കുന്നു (AM/PM ഫോർമാറ്റിൽ)
+            current_time = timezone.localtime(timezone.now())
+            date_str = current_time.strftime("%d-%b-%Y")
+            time_str = current_time.strftime("%I:%M %p") # <--- ഇവിടെയാണ് മാറ്റം വരുത്തിയത്
+            
+            # 2. പുതിയ ബിൽ നമ്പർ ഉണ്ടാക്കുന്നു
+            total_prints = DemoPrintJob.objects.count()
+            bill_no = 3108 + total_prints
+            
+            # KOT പ്രിൻ്റ് ഫോർമാറ്റ്
+            kot_text = f"""
+        KOT
+================================
+BILL No : {bill_no}
+Date    : {date_str}    Time : {time_str}
+Table   : TABLE 3
+Waiter  : ASHISH
+--------------------------------
+No Description               Qty
+--------------------------------
+"""
+            for idx, item in enumerate(items, 1):
+                name = item['name'][:25].ljust(25)
+                kot_text += f"{idx} {name} {item['qty']}\n"
+                
+            kot_text += "================================"
+            
+            DemoPrintJob.objects.create(dummy_text=kot_text)
+            return JsonResponse({'status': 'Success', 'message': f'KOT {bill_no} Sent to Kitchen!'})
+            
+        except Exception as e:
+            return JsonResponse({'status': 'Error', 'message': str(e)})
+            
+    products = Scube_ss.objects.filter(status='SCUBE').order_by('name')
+    return render(request, 'demo_print.html', {'products': products})
+
+
+# ലാപ്ടോപ്പിലെ സ്ക്രിപ്റ്റിന് ഡാറ്റ കൊടുക്കാനുള്ള API
+def fetch_demo_print(request):
+    pending_job = DemoPrintJob.objects.filter(is_printed=False).first()
+    
+    if pending_job:
+        pending_job.is_printed = True
+        pending_job.save()
+        return JsonResponse({'has_print': True, 'print_data': pending_job.dummy_text})
+    
+    return JsonResponse({'has_print': False})

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; text-align: center; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; display: flex; gap: 10px; }
+        select, input, button { padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; }
+        select { flex-grow: 1; }
+        input[type="number"] { width: 60px; }
+        .btn-add { background-color: #ffc107; color: black; border: none; cursor: pointer; font-weight: bold;}
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        
+        .action-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .btn { flex: 1; padding: 15px; font-size: 16px; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;}
+        .btn-kot { background-color: #28a745; }
+        .btn-main { background-color: #007bff; }
+        #status { font-weight: bold; margin-top: 10px; }
+
+        /* ==========================================
+           THERMAL PRINTER (80mm) CSS 
+           ========================================== */
+        .print-receipt { display: none; text-align: left; font-family: 'Courier New', Courier, monospace; font-size: 12px; width: 300px; margin: 0 auto; color: black; background: white;}
+        .print-receipt hr { border: top 1px dashed black; border-bottom: none; margin: 5px 0; }
+        .print-table { width: 100%; }
+        .print-table th, .print-table td { padding: 2px 0; border: none; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #main-bill-receipt, #main-bill-receipt * { visibility: visible; }
+            #main-bill-receipt { display: block; position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0;}
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>POS System Demo</h2>
+        
+        <!-- Item Selection -->
+        <div class="form-group">
+            <select id="item-select">
+                <option value="">Select Item (From Scube_ss)...</option>
+                {% for p in products %}
+                    <option value="{{ p.id }}" data-price="{{ p.prize }}">{{ p.name }} - ₹{{ p.prize }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" id="item-qty" value="1" min="1">
+            <button class="btn-add" onclick="addItem()">ADD</button>
+        </div>
+
+        <!-- Added Items Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Rate</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody id="cart-body">
+                <!-- Items will appear here -->
+            </tbody>
+        </table>
+        <h3 style="text-align: right;">Total: ₹<span id="cart-total">0</span></h3>
+
+        <!-- Action Buttons -->
+        <div class="action-btns">
+            <button class="btn btn-kot" onclick="printKOT()">Print KOT (Kitchen)</button>
+            <button class="btn btn-main" onclick="printMainBill()">Print Bill (Laptop)</button>
+        </div>
+        <p id="status"></p>
+    </div>
+
+    <!-- ==========================================
+         MAIN BILL RECEIPT FORMAT (Hidden normally)
+         ========================================== -->
+    <div id="main-bill-receipt" class="print-receipt">
+        <div class="text-center">
+            <h2 style="margin: 0; font-size: 20px;">GOLDEN STAR</h2>
+            <p style="margin: 2px 0;">FAMILY RESTAURANT</p>
+            <p style="margin: 2px 0;">Near Axis Bank, Main road, chethomkara-Ranni</p>
+            <p style="margin: 2px 0;">MOB : 6282728882</p>
+            <p style="margin: 2px 0;">GSTIN : 32DCVPP8709K1ZS</p>
+            <p style="margin: 2px 0;">Composition Tax Payer</p>
+        </div>
+        <hr style="border-top: 1px dashed black;">
+        <p style="margin: 3px 0;">BILL NO &nbsp;&nbsp;: 2321 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Table :</p>
+        <p style="margin: 3px 0;">BILL DATE : <span id="bill-date"></span></p>
+        <p style="margin: 3px 0;">PARTY &nbsp;&nbsp;&nbsp;&nbsp;:</p>
+        <p style="margin: 3px 0;">Mobile No :</p>
+        <p class="text-center" style="margin: 5px 0;">Bill Of Supplly</p>
+        <hr style="border-top: 1px dashed black;">
+        
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th style="width: 10%;">S/No</th>
+                    <th style="width: 50%;">Particulars</th>
+                    <th class="text-right" style="width: 10%;">Qty</th>
+                    <th class="text-right" style="width: 15%;">Rate</th>
+                    <th class="text-right" style="width: 15%;">Total</th>
+                </tr>
+            </thead>
+            <tbody id="receipt-body">
+                <!-- Receipt Items dynamically added -->
+            </tbody>
+        </table>
+        
+        <hr style="border-top: 1px dashed black;">
+        <table class="print-table">
+            <tr>
+                <td class="text-center" style="width: 70%;"><span id="receipt-total-qty">0</span></td>
+                <td class="text-right" style="width: 30%;"><span id="receipt-total-amt">0.00</span></td>
+            </tr>
+        </table>
+        <hr style="border-top: 1px dashed double;">
+        
+        <h3 style="margin: 5px 0;">Bill Amount &nbsp;: &nbsp;<span id="receipt-final-amt">0.00</span></h3>
+        
+        <hr style="border-top: 1px dashed black;">
+        <p class="text-center" style="margin: 5px 0; font-size: 14px;">CONSUME PARCEL FOOD WITHIN TWO HOURS</p>
+        <hr style="border-top: 1px dashed black;">
+        <p class="text-center" style="margin: 5px 0;">THANK YOU !!! VISIT AGAIN</p>
+    </div>
+
+    <script>
+        let cart = [];
+
+        function addItem() {
+            const select = document.getElementById('item-select');
+            const qtyInput = document.getElementById('item-qty');
+            
+            if (select.selectedIndex === 0) return;
+
+            const name = select.options[select.selectedIndex].text.split(' - ')[0];
+            const price = parseFloat(select.options[select.selectedIndex].getAttribute('data-price'));
+            const qty = parseInt(qtyInput.value);
+            const total = price * qty;
+
+            cart.push({ name, qty, price, total });
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const tbody = document.getElementById('cart-body');
+            const receiptBody = document.getElementById('receipt-body');
+            tbody.innerHTML = '';
+            receiptBody.innerHTML = '';
+            
+            let grandTotal = 0;
+            let totalQty = 0;
+
+            cart.forEach((item, index) => {
+                // വെബ് പേജിലെ ടേബിൾ
+                tbody.innerHTML += `<tr>
+                    <td>${item.name}</td>
+                    <td>${item.qty}</td>
+                    <td>${item.price}</td>
+                    <td>${item.total}</td>
+                </tr>`;
+
+                // പ്രിൻ്റ് ചെയ്യാനുള്ള രസീത് ടേബിൾ (Thermel Format)
+                receiptBody.innerHTML += `<tr>
+                    <td>${index + 1}</td>
+                    <td>${item.name}</td>
+                    <td class="text-right">${item.qty}</td>
+                    <td class="text-right">${item.price}</td>
+                    <td class="text-right">${item.total.toFixed(2)}</td>
+                </tr>`;
+
+                grandTotal += item.total;
+                totalQty += item.qty;
+            });
+
+            document.getElementById('cart-total').innerText = grandTotal.toFixed(2);
+            document.getElementById('receipt-total-qty').innerText = totalQty;
+            document.getElementById('receipt-total-amt').innerText = grandTotal.toFixed(2);
+            document.getElementById('receipt-final-amt').innerText = grandTotal.toFixed(2);
+            
+            // കറന്റ് ഡേറ്റ് ആൻഡ് ടൈം സെറ്റ് ചെയ്യാൻ
+            let now = new Date();
+            let dateStr = now.getDate() + "-" + now.toLocaleString('default', { month: 'short' }) + "-" + now.getFullYear() + ", Time : " + now.getHours() + ":" + (now.getMinutes()<10?'0':'') + now.getMinutes();
+            document.getElementById('bill-date').innerText = dateStr;
+        }
+
+        function printKOT() {
+            if (cart.length === 0) {
+                alert("Please add items first!");
+                return;
+            }
+
+            let statusText = document.getElementById('status');
+            statusText.innerText = 'Sending KOT...';
+            statusText.style.color = 'orange';
+            
+            // KOT ഡാറ്റ Django ലേക്ക് അയക്കുന്നു
+            fetch('/demo-print/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ items: cart })
+            })
+            .then(response => response.json())
+            .then(data => {
+                statusText.innerText = data.message;
+                statusText.style.color = 'green';
+                setTimeout(() => { statusText.innerText = ''; }, 3000);
+            })
+            .catch(error => {
+                statusText.innerText = 'Error sending KOT!';
+                statusText.style.color = 'red';
+            });
+        }
+
+        function printMainBill() {
+            if (cart.length === 0) {
+                alert("Please add items first!");
+                return;
+            }
+            window.print();
+        }
+    </script>
+</body>
+</html>

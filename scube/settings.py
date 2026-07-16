@@ -161,3 +161,4 @@ PWA_APP_ICONS = [
 ]
 PWA_APP_DIR = 'ltr'
 PWA_APP_LANG = 'en-US'
+TIME_ZONE = 'Asia/Kolkata'

@@ -380,3 +380,11 @@ class StockAdjustment(models.Model):
 
     def __str__(self):
         return f"{self.item.name} - {self.adjustment_type} ({self.quantity})"
+    
+# ==========================================
+# 7. DEMO PRINTING MODEL (Temporary)
+# ==========================================
+class DemoPrintJob(models.Model):
+    dummy_text = models.TextField()
+    is_printed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)

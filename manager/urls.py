@@ -129,4 +129,11 @@ urlpatterns = [
     # Stock Adjustment URL-കൾ
     path('stock-management/adjust/', views.adjust_stock, name='adjust_stock'),
     path('stock-management/get-items/', views.get_items_ajax, name='get_items_ajax'),
+
+
+    # ==========================================
+    # 8. DEMO PRINTING URLs
+    # ==========================================
+    path('demo-print/', views.demo_print_page, name='demo_print_page'),
+    path('api/fetch-print/', views.fetch_demo_print, name='fetch_demo_print'),
 ]
