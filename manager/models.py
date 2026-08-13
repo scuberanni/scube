@@ -4,6 +4,7 @@ from PIL import Image, ImageOps  # ImageOps ഇമ്പോർട്ട് ച�
 from django.core.files.uploadedfile import InMemoryUploadedFile
 import sys
 import datetime
+import os
 
 # ==========================================
 # CHOICES TUPLES
@@ -234,10 +235,15 @@ class BoardProductionRecord(models.Model):
                 img.save(output, format='JPEG', quality=quality, optimize=True)
 
             output.seek(0)
+
+            original_filename = os.path.basename(self.cl_image.name)
+            name_without_ext = os.path.splitext(original_filename)[0]
+
             self.cl_image = InMemoryUploadedFile(
-                output, 'ImageField', f"{self.cl_image.name.split('.')[0]}.jpg",
-                'image/jpeg', sys.getsizeof(output), None
+            output, 'ImageField', f"{name_without_ext}.jpg",
+            'image/jpeg', sys.getsizeof(output), None
             )
+            
             self._image_compressed = True
 
         super(BoardProductionRecord, self).save(*args, **kwargs)

@@ -1212,8 +1212,6 @@ def get_items_ajax(request):
 # ==========================================
 # 8. DEMO PRINTING VIEWS
 # ==========================================
-from .models import DemoPrintJob
-
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.utils import timezone
@@ -1225,18 +1223,17 @@ def demo_print_page(request):
         try:
             data = json.loads(request.body)
             items = data.get('items', [])
+            print_type = data.get('print_type', 'KOT') # KOT ആണോ MAIN ആണോ എന്ന് തിരിച്ചറിയാൻ
             
-            # 1. കൃത്യമായ ഇന്ത്യൻ സമയം എടുക്കുന്നു (AM/PM ഫോർമാറ്റിൽ)
             current_time = timezone.localtime(timezone.now())
             date_str = current_time.strftime("%d-%b-%Y")
-            time_str = current_time.strftime("%I:%M %p") # <--- ഇവിടെയാണ് മാറ്റം വരുത്തിയത്
+            time_str = current_time.strftime("%I:%M %p")
             
-            # 2. പുതിയ ബിൽ നമ്പർ ഉണ്ടാക്കുന്നു
             total_prints = DemoPrintJob.objects.count()
             bill_no = 3108 + total_prints
             
-            # KOT പ്രിൻ്റ് ഫോർമാറ്റ്
-            kot_text = f"""
+            if print_type == 'KOT':
+                print_text = f"""
         KOT
 ================================
 BILL No : {bill_no}
@@ -1247,14 +1244,49 @@ Waiter  : ASHISH
 No Description               Qty
 --------------------------------
 """
-            for idx, item in enumerate(items, 1):
-                name = item['name'][:25].ljust(25)
-                kot_text += f"{idx} {name} {item['qty']}\n"
+                for idx, item in enumerate(items, 1):
+                    name = item['name'][:25].ljust(25)
+                    print_text += f"{idx} {name} {item['qty']}\n"
+                print_text += "================================"
                 
-            kot_text += "================================"
+            else: 
+                # MAIN BILL ഫോർമാറ്റ്
+                total_qty = sum(item['qty'] for item in items)
+                grand_total = sum(item['total'] for item in items)
+                
+                print_text = f"""
+          GOLDEN STAR
+       FAMILY RESTAURANT
+Near Axis Bank, Main road, Ranni
+         MOB : 6282728882
+--------------------------------
+BILL NO   : {bill_no}       Table :
+BILL DATE : {date_str}, Time : {time_str}
+--------------------------------
+S/No Particulars       Qty  Rate
+--------------------------------
+"""
+                for idx, item in enumerate(items, 1):
+                    name = item['name'][:18].ljust(18)
+                    qty = str(item['qty']).rjust(3)
+                    rate = str(item['price']).rjust(5)
+                    print_text += f"{idx:2d} {name} {qty} {rate}\n"
+                    
+                    # Total റൈറ്റ് അലൈൻ ചെയ്യാൻ
+                    total = f"{item['total']:.2f}"
+                    print_text += f"{total.rjust(32)}\n"
+                    
+                print_text += "--------------------------------\n"
+                print_text += f"Total Qty: {total_qty}".ljust(16) + f"Total: {grand_total:.2f}".rjust(16) + "\n"
+                print_text += "================================\n"
+                print_text += f"Bill Amount : {grand_total:.2f}\n"
+                print_text += "================================\n"
+                print_text += "   THANK YOU !!! VISIT AGAIN\n"
+
+            # Database Migration ഒഴിവാക്കാൻ || വെച്ച് സേവ് ചെയ്യുന്നു
+            DemoPrintJob.objects.create(dummy_text=f"{print_type}||{print_text}")
             
-            DemoPrintJob.objects.create(dummy_text=kot_text)
-            return JsonResponse({'status': 'Success', 'message': f'KOT {bill_no} Sent to Kitchen!'})
+            return JsonResponse({'status': 'Success', 'message': f'{print_type} {bill_no} Sent!'})
             
         except Exception as e:
             return JsonResponse({'status': 'Error', 'message': str(e)})
@@ -1262,14 +1294,24 @@ No Description               Qty
     products = Scube_ss.objects.filter(status='SCUBE').order_by('name')
     return render(request, 'demo_print.html', {'products': products})
 
-
-# ലാപ്ടോപ്പിലെ സ്ക്രിപ്റ്റിന് ഡാറ്റ കൊടുക്കാനുള്ള API
 def fetch_demo_print(request):
     pending_job = DemoPrintJob.objects.filter(is_printed=False).first()
     
     if pending_job:
         pending_job.is_printed = True
         pending_job.save()
-        return JsonResponse({'has_print': True, 'print_data': pending_job.dummy_text})
+        
+        # സേവ് ചെയ്ത ഡാറ്റ തരം തിരിക്കുന്നു
+        text_data = pending_job.dummy_text
+        if "||" in text_data:
+            p_type, p_data = text_data.split("||", 1)
+        else:
+            p_type, p_data = 'KOT', text_data
+            
+        return JsonResponse({
+            'has_print': True, 
+            'print_type': p_type,
+            'print_data': p_data
+        })
     
     return JsonResponse({'has_print': False})

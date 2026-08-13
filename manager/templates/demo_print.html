@@ -228,7 +228,29 @@
                 alert("Please add items first!");
                 return;
             }
-            window.print();
+
+            let statusText = document.getElementById('status');
+            statusText.innerText = 'Sending Main Bill...';
+            statusText.style.color = 'blue';
+            
+            fetch('/demo-print/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ items: cart, print_type: 'MAIN' }) // MAIN എന്ന് ടാഗ് ചെയ്യുന്നു
+            })
+            .then(response => response.json())
+            .then(data => {
+                statusText.innerText = data.message;
+                statusText.style.color = 'green';
+                setTimeout(() => { statusText.innerText = ''; }, 3000);
+            })
+            .catch(error => {
+                statusText.innerText = 'Error sending Main Bill!';
+                statusText.style.color = 'red';
+            });
         }
     </script>
 </body>
